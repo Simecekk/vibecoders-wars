@@ -60,6 +60,8 @@ class GitHub(Protocol):
     def close(self, number: int) -> None: ...
     def request_reviewer(self, number: int, login: str) -> None: ...
 
+    # optional: def merged_at(self, number: int) -> str | None  (used by reconcile_merged)
+
 
 @dataclass
 class Pr:
@@ -265,6 +267,55 @@ def _report_merge_failure(gh: Any, number: int, area: str, exc: Exception) -> st
 FIX_MERGED_TEXT = "Fix merged, thank you! 🛠️ Area `{area}` keeps its owner. You get +1 participation point."
 
 
+# --------------------------------------------------------------------------- step 0: self-healing
+
+
+def _claim(state: State, gh: GitHub, t: dict[str, Any], author: str, number: int, ts: str) -> None:
+    _player(state, gh, author, ts)
+    t.update(status="claimed", owner=author, winningPr=number, claimedAt=ts)
+    _ledger(
+        state,
+        {
+            "id": f"claim:{t['id']}",
+            "player": author,
+            "points": t["basePoints"],
+            "reason": "claim",
+            "territoryId": t["id"],
+            "pr": number,
+            "at": ts,
+        },
+    )
+
+
+def reconcile_merged(state: State, gh: GitHub) -> int:
+    """Record owners for areas whose winning PR was merged but whose state write was lost
+    (e.g. the state push failed after the merge). A PR qualifies when the state has a valid,
+    still-open record for an area that is free/in_review, and GitHub says it is merged.
+    Returns the number of areas fixed."""
+    merged_at = getattr(gh, "merged_at", None)
+    if merged_at is None:
+        return 0
+    tmap = territory_by_id(state)
+    fixed = 0
+    for rec in sorted(state["pullRequests"], key=lambda r: r["number"]):
+        t = tmap.get(rec.get("territoryId") or "")
+        if t is None or t["status"] not in ("free", "in_review") or t.get("owner"):
+            continue
+        if rec.get("state") != "open" or rec.get("validity") != "valid" or LABEL_BLOCKED in rec.get("labels", []):
+            continue
+        if is_fix_title(rec.get("title", "")) or area_from_title(rec.get("title", "")) != t["id"]:
+            continue
+        at = merged_at(rec["number"])
+        if not at:
+            continue
+        ts = fmt_ts(parse_ts(at))
+        _claim(state, gh, t, rec["author"], rec["number"], ts)
+        rec.update(state="merged", mergedAt=ts, result="won")
+        print(f"reconciled: area {t['id']} -> {rec['author']} (PR #{rec['number']} merged {ts})")
+        fixed += 1
+    return fixed
+
+
 # --------------------------------------------------------------------------- step 1: fixes
 
 
@@ -371,6 +422,7 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
     original = copy.deepcopy(state)
     gh = _Counting(gh)  # type: ignore[assignment]
     ts = fmt_ts(now)
+    reconciled = reconcile_merged(state, gh)
     prs = [Pr.from_api(raw) for raw in gh.open_pulls()]
     prs = [p for p in prs if p.area is not None]
     for pr in prs:
@@ -418,21 +470,7 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
         except Exception as exc:  # noqa: BLE001
             results[-1]["note"] = f"merge failed: {_report_merge_failure(gh, winner.number, area, exc)}"
             continue
-        t = tmap[area]
-        _player(state, gh, winner.author, ts)
-        t.update(status="claimed", owner=winner.author, winningPr=winner.number, claimedAt=ts)
-        _ledger(
-            state,
-            {
-                "id": f"claim:{area}",
-                "player": winner.author,
-                "points": t["basePoints"],
-                "reason": "claim",
-                "territoryId": area,
-                "pr": winner.number,
-                "at": ts,
-            },
-        )
+        _claim(state, gh, tmap[area], winner.author, winner.number, ts)
         _record_pr(state, winner, state="merged", mergedAt=ts, result="won")
         winners[area] = winner
         closed.add(winner.number)
@@ -474,6 +512,7 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
     badges = sum(len(p["badges"]) for p in state["players"])
     changed = (
         gh.writes > 0
+        or reconciled > 0
         or len(state["pointsLedger"]) != len(original["pointsLedger"])  # type: ignore[attr-defined]
         or badges != sum(len(p["badges"]) for p in original["players"])
     )
@@ -593,6 +632,9 @@ class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehea
 
     def close(self, number):
         self._req("PATCH", f"/repos/{self.repo}/pulls/{number}", {"state": "closed"})
+
+    def merged_at(self, number):
+        return self._req("GET", f"/repos/{self.repo}/pulls/{number}").get("merged_at")
 
     def request_reviewer(self, number, login):
         try:
