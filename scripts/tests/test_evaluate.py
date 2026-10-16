@@ -236,7 +236,24 @@ def test_merge_failure_keeps_in_review(fresh, gh):
     gh.fail_merge.add(1)
     s = run(fresh, gh)
     assert terr(s, "validation")["status"] == "in_review" and ledger(s, "claim") == []
-    assert any("merging failed" in b for _, b in gh.comments)
+    assert any("could not merge" in b and "409 conflict" in b for _, b in gh.comments)
+
+
+def test_merge_failure_comments_real_api_error(fresh, gh, capsys):
+    from scripts.evaluate import GitHubApiError
+
+    gh.add_pr(1, "validation", "alice")
+    gh.thumbs(1, "v1")
+
+    def boom(number, title):
+        raise GitHubApiError("PUT", "/pulls/1/merge", 403, "Resource not accessible by integration")
+
+    gh.merge = boom
+    s = run(fresh, gh)
+    assert terr(s, "validation")["status"] == "in_review"
+    body = [b for _, b in gh.comments if "could not merge" in b][0]
+    assert "HTTP 403" in body and "Resource not accessible by integration" in body and "conflict" not in body
+    assert "HTTP 403" in capsys.readouterr().err
 
 
 def test_no_change_no_evaluation_entry(fresh, gh):

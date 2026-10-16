@@ -19,7 +19,7 @@ on:
         description: "Reason (required for a penalty)"
         required: false
 permissions:
-  contents: read          # state is pushed with the deploy key (ruleset bypass), not GITHUB_TOKEN
+  contents: write         # needed for the PR merge API (a normal PR merge, ruleset checks apply); the state commit is still pushed with the deploy key
   pull-requests: write
   issues: write
 concurrency:
