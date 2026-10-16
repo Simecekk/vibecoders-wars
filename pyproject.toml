@@ -1,0 +1,19 @@
+[project]
+name = "valky-vibecoders"
+version = "0.1.0"
+description = "Války Vibecoders – hra pro začátečníky: společně stavíme jeden FastAPI backend přes pull requesty."
+requires-python = ">=3.11"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+addopts = "-q --import-mode=importlib"
+testpaths = ["tests", "scripts/tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 132
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

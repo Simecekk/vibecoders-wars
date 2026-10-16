@@ -1,0 +1,58 @@
+name: evaluate
+on:
+  schedule:
+    - cron: "0 18 * * *"   # 20:00 Prague in summer (CEST)
+    - cron: "0 19 * * *"   # 20:00 Prague in winter (CET)
+  workflow_dispatch:
+    inputs:
+      penalty_login:
+        description: "Maintainer veto: login to penalize (leave empty for a normal run)"
+        required: false
+      penalty_area:
+        description: "Area to take away"
+        required: false
+      note:
+        description: "Reason (required for a penalty)"
+        required: false
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+concurrency:
+  group: evaluate
+  cancel-in-progress: false
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4   # main, never PR code
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Only at 20:xx Prague (one of the two crons), or when started by hand
+        id: hour
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || python -m scripts.evaluate --check-hour; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Evaluate
+        if: steps.hour.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PENALTY_LOGIN: ${{ inputs.penalty_login }}
+          PENALTY_AREA: ${{ inputs.penalty_area }}
+          NOTE: ${{ inputs.note }}
+        run: |
+          if [ -n "$PENALTY_LOGIN" ]; then
+            python -m scripts.evaluate --penalty "$PENALTY_LOGIN" "$PENALTY_AREA" --note "${NOTE:-cheating}"
+          else
+            python -m scripts.evaluate
+          fi
+      - name: Commit state
+        if: steps.hour.outputs.run == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/territories.json
+          git diff --cached --quiet || { git commit -m "chore(state): evaluation $(date -u +%F)" && git push; }

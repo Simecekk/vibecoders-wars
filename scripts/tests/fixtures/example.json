@@ -1,0 +1,415 @@
+{
+  "schemaVersion": "2.0",
+  "repo": "Simecekk/vibecoders-wars",
+  "updatedAt": "2026-10-16T14:30:00Z",
+  "currentWave": 1,
+  "players": [
+    {
+      "login": "jnovak",
+      "githubId": 1001,
+      "avatarUrl": "https://avatars.githubusercontent.com/u/1001?v=4",
+      "displayName": "Jan Novák",
+      "status": "active",
+      "joinedAt": "2026-10-14T09:00:00Z",
+      "score": 10,
+      "badges": [
+        {
+          "id": "first-pr",
+          "awardedAt": "2026-10-14T09:10:00Z",
+          "pr": 12
+        }
+      ]
+    },
+    {
+      "login": "pkralova",
+      "githubId": 1002,
+      "avatarUrl": "https://avatars.githubusercontent.com/u/1002?v=4",
+      "status": "active",
+      "joinedAt": "2026-10-14T10:00:00Z",
+      "score": 0,
+      "badges": [
+        {
+          "id": "first-pr",
+          "awardedAt": "2026-10-16T07:10:00Z",
+          "pr": 15
+        }
+      ]
+    },
+    {
+      "login": "tdvorak",
+      "githubId": 1003,
+      "avatarUrl": "https://avatars.githubusercontent.com/u/1003?v=4",
+      "status": "active",
+      "joinedAt": "2026-10-15T08:00:00Z",
+      "score": 1,
+      "badges": [
+        {
+          "id": "first-pr",
+          "awardedAt": "2026-10-14T11:10:00Z",
+          "pr": 13
+        }
+      ]
+    }
+  ],
+  "waves": [
+    {
+      "number": 1,
+      "status": "open",
+      "territoryIds": [
+        "crud-endpoints",
+        "validation",
+        "error-handling",
+        "database-models",
+        "middleware-logging"
+      ],
+      "openedAt": "2026-10-14T08:00:00Z",
+      "completedAt": null
+    },
+    {
+      "number": 2,
+      "status": "locked",
+      "territoryIds": [
+        "pagination-filtering",
+        "testing-fixtures",
+        "caching",
+        "background-tasks",
+        "rate-limiting",
+        "auth"
+      ],
+      "openedAt": null,
+      "completedAt": null
+    }
+  ],
+  "territories": [
+    {
+      "id": "crud-endpoints",
+      "name": "CRUD endpointy",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "status": "claimed",
+      "codePath": "app/areas/crud-endpoints/",
+      "testsPath": "tests/areas/crud-endpoints/",
+      "owner": "jnovak",
+      "winningPr": 12,
+      "claimedAt": "2026-10-15T18:00:30Z",
+      "map": {
+        "q": 0,
+        "r": 0
+      }
+    },
+    {
+      "id": "validation",
+      "name": "Validace",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "status": "in_review",
+      "codePath": "app/areas/validation/",
+      "testsPath": "tests/areas/validation/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 1,
+        "r": -1
+      }
+    },
+    {
+      "id": "error-handling",
+      "name": "Error handling",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "status": "free",
+      "codePath": "app/areas/error-handling/",
+      "testsPath": "tests/areas/error-handling/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 1,
+        "r": 0
+      }
+    },
+    {
+      "id": "database-models",
+      "name": "Databáze a modely",
+      "wave": 1,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "free",
+      "codePath": "app/areas/database-models/",
+      "testsPath": "tests/areas/database-models/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": -1,
+        "r": 1
+      }
+    },
+    {
+      "id": "middleware-logging",
+      "name": "Middleware a logování",
+      "wave": 1,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "free",
+      "codePath": "app/areas/middleware-logging/",
+      "testsPath": "tests/areas/middleware-logging/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": -1,
+        "r": 0
+      }
+    },
+    {
+      "id": "pagination-filtering",
+      "name": "Stránkování a filtry",
+      "wave": 2,
+      "tier": "S",
+      "basePoints": 10,
+      "status": "locked",
+      "codePath": "app/areas/pagination-filtering/",
+      "testsPath": "tests/areas/pagination-filtering/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 0,
+        "r": -1
+      }
+    },
+    {
+      "id": "testing-fixtures",
+      "name": "Testovací fixtures",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "locked",
+      "codePath": "app/areas/testing-fixtures/",
+      "testsPath": "tests/areas/testing-fixtures/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 2,
+        "r": -1
+      }
+    },
+    {
+      "id": "caching",
+      "name": "Caching",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "locked",
+      "codePath": "app/areas/caching/",
+      "testsPath": "tests/areas/caching/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 0,
+        "r": 1
+      }
+    },
+    {
+      "id": "background-tasks",
+      "name": "Background tasky",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "locked",
+      "codePath": "app/areas/background-tasks/",
+      "testsPath": "tests/areas/background-tasks/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": 1,
+        "r": 1
+      }
+    },
+    {
+      "id": "rate-limiting",
+      "name": "Rate limiting",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "status": "locked",
+      "codePath": "app/areas/rate-limiting/",
+      "testsPath": "tests/areas/rate-limiting/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": -2,
+        "r": 1
+      }
+    },
+    {
+      "id": "auth",
+      "name": "Autentizace",
+      "wave": 2,
+      "tier": "L",
+      "basePoints": 50,
+      "status": "locked",
+      "codePath": "app/areas/auth/",
+      "testsPath": "tests/areas/auth/",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null,
+      "map": {
+        "q": -1,
+        "r": -1
+      }
+    }
+  ],
+  "pullRequests": [
+    {
+      "number": 12,
+      "url": "https://github.com/Simecekk/vibecoders-wars/pull/12",
+      "title": "[crud-endpoints] CRUD pro položky",
+      "author": "jnovak",
+      "territoryId": "crud-endpoints",
+      "state": "merged",
+      "createdAt": "2026-10-14T09:00:00Z",
+      "mergedAt": "2026-10-15T18:00:30Z",
+      "closedAt": "2026-10-15T18:00:30Z",
+      "ciStatus": "success",
+      "validity": "valid",
+      "labels": [
+        "area:crud-endpoints"
+      ],
+      "score": 3,
+      "result": "won",
+      "votes": [
+        {
+          "voter": "pkralova",
+          "type": "approval",
+          "at": "2026-10-15T12:00:00Z",
+          "counted": true,
+          "reason": "ok"
+        },
+        {
+          "voter": "mhorak",
+          "type": "thumbs_up",
+          "at": "2026-10-15T13:00:00Z",
+          "counted": true,
+          "reason": "ok"
+        },
+        {
+          "voter": "Simecekk",
+          "type": "thumbs_up",
+          "at": "2026-10-15T14:00:00Z",
+          "counted": false,
+          "reason": "is_maintainer"
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "url": "https://github.com/Simecekk/vibecoders-wars/pull/13",
+      "title": "[crud-endpoints] Jednoduchý CRUD",
+      "author": "tdvorak",
+      "territoryId": "crud-endpoints",
+      "state": "closed",
+      "createdAt": "2026-10-14T11:00:00Z",
+      "mergedAt": null,
+      "closedAt": "2026-10-15T18:00:40Z",
+      "ciStatus": "success",
+      "validity": "valid",
+      "labels": [
+        "area:crud-endpoints",
+        "vv:lost"
+      ],
+      "score": 1,
+      "result": "lost",
+      "votes": [
+        {
+          "voter": "ozelena",
+          "type": "thumbs_up",
+          "at": "2026-10-15T10:00:00Z",
+          "counted": true,
+          "reason": "ok"
+        },
+        {
+          "voter": "mhorak",
+          "type": "thumbs_up",
+          "at": "2026-10-15T15:00:00Z",
+          "counted": false,
+          "reason": "already_voted_in_area"
+        }
+      ],
+      "lostReason": "outscored"
+    },
+    {
+      "number": 15,
+      "url": "https://github.com/Simecekk/vibecoders-wars/pull/15",
+      "title": "[validation] Validace položek",
+      "author": "pkralova",
+      "territoryId": "validation",
+      "state": "open",
+      "createdAt": "2026-10-16T07:00:00Z",
+      "mergedAt": null,
+      "closedAt": null,
+      "ciStatus": "success",
+      "validity": "valid",
+      "labels": [
+        "area:validation"
+      ],
+      "score": 0,
+      "result": "pending",
+      "votes": []
+    }
+  ],
+  "evaluations": [
+    {
+      "at": "2026-10-15T18:00:00Z",
+      "results": [
+        {
+          "territoryId": "crud-endpoints",
+          "candidates": [
+            {
+              "pr": 12,
+              "thumbsUp": 1,
+              "approvals": 1,
+              "score": 3
+            },
+            {
+              "pr": 13,
+              "thumbsUp": 1,
+              "approvals": 0,
+              "score": 1
+            }
+          ],
+          "winnerPr": 12
+        }
+      ]
+    }
+  ],
+  "pointsLedger": [
+    {
+      "id": "l-1",
+      "player": "jnovak",
+      "points": 10,
+      "reason": "claim",
+      "territoryId": "crud-endpoints",
+      "pr": 12,
+      "at": "2026-10-15T18:00:30Z"
+    },
+    {
+      "id": "l-2",
+      "player": "tdvorak",
+      "points": 1,
+      "reason": "participation",
+      "territoryId": "crud-endpoints",
+      "pr": 13,
+      "at": "2026-10-15T18:00:40Z"
+    }
+  ]
+}

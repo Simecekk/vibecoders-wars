@@ -1,0 +1,5 @@
+fastapi>=0.115
+httpx>=0.27
+pytest>=8
+jsonschema[format]>=4.21
+ruff>=0.6

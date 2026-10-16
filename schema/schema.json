@@ -1,0 +1,700 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Simecekk/vibecoders-wars/game/schema.json",
+  "title": "Vibecoders Wars – game state v2 (data/territories.json)",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "repo",
+    "updatedAt",
+    "currentWave",
+    "players",
+    "waves",
+    "territories",
+    "pullRequests",
+    "evaluations",
+    "pointsLedger"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": "2.0"
+    },
+    "repo": {
+      "const": "Simecekk/vibecoders-wars"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "currentWave": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "players": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/player"
+      }
+    },
+    "waves": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/wave"
+      }
+    },
+    "territories": {
+      "type": "array",
+      "description": "Oblasti backendu",
+      "items": {
+        "$ref": "#/$defs/territory"
+      }
+    },
+    "pullRequests": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/pullRequest"
+      }
+    },
+    "evaluations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evaluation"
+      }
+    },
+    "pointsLedger": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ledgerEntry"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "login": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$"
+    },
+    "player": {
+      "type": "object",
+      "required": [
+        "login",
+        "githubId",
+        "avatarUrl",
+        "status",
+        "joinedAt",
+        "badges"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "login": {
+          "$ref": "#/$defs/login"
+        },
+        "githubId": {
+          "type": "integer"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "active",
+            "disqualified"
+          ]
+        },
+        "joinedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "score": {
+          "type": "integer",
+          "description": "Cache, zdroj pravdy je pointsLedger"
+        },
+        "badges": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "awardedAt"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "enum": [
+                  "first-pr"
+                ]
+              },
+              "awardedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "pr": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "wave": {
+      "type": "object",
+      "required": [
+        "number",
+        "status",
+        "territoryIds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "locked",
+            "open",
+            "completed"
+          ]
+        },
+        "territoryIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "minItems": 5,
+          "maxItems": 8,
+          "uniqueItems": true
+        },
+        "openedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "territory": {
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "wave",
+        "tier",
+        "basePoints",
+        "status",
+        "codePath",
+        "testsPath",
+        "owner",
+        "map"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "wave": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "tier": {
+          "enum": [
+            "S",
+            "M",
+            "L"
+          ]
+        },
+        "basePoints": {
+          "enum": [
+            10,
+            25,
+            50
+          ]
+        },
+        "status": {
+          "enum": [
+            "locked",
+            "free",
+            "in_review",
+            "claimed"
+          ]
+        },
+        "codePath": {
+          "type": "string",
+          "pattern": "^app/areas/[a-z0-9-]+/$"
+        },
+        "testsPath": {
+          "type": "string",
+          "pattern": "^tests/areas/[a-z0-9-]+/$"
+        },
+        "owner": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/login"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "winningPr": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "claimedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "map": {
+          "type": "object",
+          "required": [
+            "q",
+            "r"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "q": {
+              "type": "integer"
+            },
+            "r": {
+              "type": "integer"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": "S"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "basePoints": {
+                "const": 10
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": "M"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "basePoints": {
+                "const": 25
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "tier": {
+                "const": "L"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "basePoints": {
+                "const": 50
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "claimed"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "winningPr",
+              "claimedAt"
+            ],
+            "properties": {
+              "owner": {
+                "$ref": "#/$defs/login"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "vote": {
+      "type": "object",
+      "required": [
+        "voter",
+        "type",
+        "at",
+        "counted"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "voter": {
+          "$ref": "#/$defs/login"
+        },
+        "type": {
+          "enum": [
+            "thumbs_up",
+            "approval"
+          ]
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "counted": {
+          "type": "boolean"
+        },
+        "reason": {
+          "enum": [
+            "ok",
+            "is_author",
+            "is_bot",
+            "account_too_young",
+            "is_maintainer",
+            "already_voted_in_area"
+          ]
+        }
+      }
+    },
+    "pullRequest": {
+      "type": "object",
+      "required": [
+        "number",
+        "url",
+        "title",
+        "author",
+        "territoryId",
+        "state",
+        "createdAt",
+        "ciStatus",
+        "validity",
+        "labels"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "url": {
+          "type": "string",
+          "pattern": "^https://github\\.com/Simecekk/vibecoders-wars/pull/\\d+$"
+        },
+        "title": {
+          "type": "string",
+          "pattern": "^\\[[a-z0-9-]+\\] .+"
+        },
+        "author": {
+          "$ref": "#/$defs/login"
+        },
+        "territoryId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$"
+        },
+        "state": {
+          "enum": [
+            "open",
+            "merged",
+            "closed"
+          ]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "mergedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "closedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "headSha": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "ciStatus": {
+          "enum": [
+            "pending",
+            "success",
+            "failure"
+          ]
+        },
+        "validity": {
+          "enum": [
+            "valid",
+            "invalid",
+            "blocked"
+          ]
+        },
+        "invalidReasons": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "unknown_area",
+              "area_not_open",
+              "files_outside_area",
+              "foreign_commits",
+              "co_authors",
+              "already_owns_in_wave",
+              "author_is_maintainer",
+              "missing_endpoint_tests",
+              "too_many_open_prs",
+              "duplicate_area_pr",
+              "cross_area_import"
+            ]
+          }
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/vote"
+          }
+        },
+        "score": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "result": {
+          "enum": [
+            "pending",
+            "won",
+            "lost",
+            "reverted"
+          ]
+        },
+        "lostReason": {
+          "enum": [
+            "outscored",
+            "won_other_area_in_wave"
+          ]
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "at",
+        "results"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "territoryId",
+              "candidates",
+              "winnerPr"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "territoryId": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]*$"
+              },
+              "candidates": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "pr",
+                    "thumbsUp",
+                    "approvals",
+                    "score"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "pr": {
+                      "type": "integer"
+                    },
+                    "thumbsUp": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "approvals": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "score": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  }
+                }
+              },
+              "winnerPr": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "ledgerEntry": {
+      "type": "object",
+      "required": [
+        "id",
+        "player",
+        "points",
+        "reason",
+        "at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "player": {
+          "$ref": "#/$defs/login"
+        },
+        "points": {
+          "type": "integer"
+        },
+        "reason": {
+          "enum": [
+            "claim",
+            "participation",
+            "penalty_revert",
+            "penalty_cheating",
+            "adjustment",
+            "conquest"
+          ]
+        },
+        "territoryId": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]*$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "pr": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "note": {
+          "type": "string"
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "const": "participation"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "points": {
+                "const": 1
+              }
+            },
+            "required": [
+              "territoryId",
+              "pr"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "reason": {
+                "const": "penalty_cheating"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "points": {
+                "maximum": 0
+              }
+            },
+            "required": [
+              "note"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+name: ci
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      # Trusted copy of main: the check scripts, conftest and game state come from here, not from the PR.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          path: trusted
+      - uses: actions/checkout@v4
+        with:
+          path: pr
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r trusted/requirements.txt
+      - name: Check PR (title, paths, commits)
+        id: pr
+        working-directory: trusted
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.check_pr
+      - name: Check imports between areas
+        run: python trusted/scripts/check_imports.py "${{ steps.pr.outputs.area }}" --root pr
+      - name: Lint (warning only)
+        continue-on-error: true
+        working-directory: pr
+        run: ruff check app tests
+      - name: Tests + every endpoint has a test
+        working-directory: pr
+        env:
+          VV_AREA: ${{ steps.pr.outputs.area }}
+        run: |
+          cp ../trusted/tests/conftest.py tests/conftest.py
+          pytest tests
