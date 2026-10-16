@@ -9,7 +9,7 @@ from scripts.common import ROOT
 
 
 def run(tmp_path, area_env, drop_echo):
-    for d in ("app", "tests"):
+    for d in ("app", "tests", "data"):
         shutil.copytree(ROOT / d, tmp_path / d, ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy(ROOT / "pyproject.toml", tmp_path)
     test = tmp_path / "tests/areas/_example/test_example.py"
@@ -36,7 +36,7 @@ def test_missing_test_fails_without_area(tmp_path):
 def test_skip_in_area_fails(tmp_path):
     (tmp_path / "tests/areas/_example").mkdir(parents=True)
     res = None
-    for d in ("app", "tests"):
+    for d in ("app", "tests", "data"):
         shutil.copytree(ROOT / d, tmp_path / d, ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
     shutil.copy(ROOT / "pyproject.toml", tmp_path)
     (tmp_path / "tests/areas/_example/test_skip.py").write_text(
