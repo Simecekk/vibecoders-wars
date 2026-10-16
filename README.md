@@ -44,6 +44,13 @@ uvicorn app.main:app --reload    # start the app
 pytest                           # run the tests
 ```
 
+Every pull request runs the same checks in CI; run them before you push:
+```bash
+ruff format .                    # format the code (CI runs `ruff format --check`)
+ruff check .                     # lint
+pytest --cov                     # tests; fails if coverage of app/ and scripts/ is below 80%
+```
+
 ## Labels
 `area:<id>`, `vv:invalid` (breaks the rules), `vv:lost` (lost the vote), `vv:blocked` (maintainer veto), `vv:fix` (fix in a claimed area; added by the bot to PRs titled `[fix:<area-id>] ...`).
 

@@ -2,10 +2,13 @@ from scripts.check_pr import Commit, PullRequest, check
 
 
 def pr(title="[validation] Validate signup", author="alice", files=None, commits=None, labels=()):
-    return PullRequest(title=title, author=author, labels=list(labels),
-                       files=files if files is not None else ["app/areas/validation/router.py",
-                                                              "tests/areas/validation/test_router.py"],
-                       commits=commits if commits is not None else [Commit("a" * 40, author, "Add validation")])
+    return PullRequest(
+        title=title,
+        author=author,
+        labels=list(labels),
+        files=files if files is not None else ["app/areas/validation/router.py", "tests/areas/validation/test_router.py"],
+        commits=commits if commits is not None else [Commit("a" * 40, author, "Add validation")],
+    )
 
 
 def claimed(state, area="crud-endpoints", owner="bob"):
@@ -97,8 +100,9 @@ def test_root_conftest_rejected(fresh):
 
 def test_maintainer_infra_pr_without_area(fresh):
     files = [".github/workflows/evaluate.yml", "scripts/evaluate.py"]
-    assert check(pr(title="Use deploy key", author="Simecekk", files=files,
-                    commits=[Commit("a" * 40, "Simecekk", "x")]), fresh) == (None, [])
+    assert check(
+        pr(title="Use deploy key", author="Simecekk", files=files, commits=[Commit("a" * 40, "Simecekk", "x")]), fresh
+    ) == (None, [])
 
 
 def test_player_infra_pr_rejected(fresh):

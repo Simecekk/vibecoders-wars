@@ -19,7 +19,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -r trusted/requirements.txt
+      # pytest-cov is listed explicitly so the coverage step also works on the PR that first adds it
+      - run: pip install -r trusted/requirements.txt "pytest-cov>=5"
       - name: Check PR (title, paths, commits)
         id: pr
         working-directory: trusted
@@ -29,11 +30,13 @@ jobs:
       - name: Check imports between areas
         if: steps.pr.outputs.area != ''
         run: python trusted/scripts/check_imports.py "${{ steps.pr.outputs.area }}" --root pr
-      - name: Lint (warning only)
-        continue-on-error: true
+      - name: Formatting (ruff format)
         working-directory: pr
-        run: ruff check app tests
-      - name: Tests + every endpoint has a test
+        run: ruff format --check --diff .
+      - name: Lint (ruff check)
+        working-directory: pr
+        run: ruff check .
+      - name: Tests + every endpoint has a test + coverage >= 80%
         working-directory: pr
         env:
           VV_AREA: ${{ steps.pr.outputs.area }}
@@ -41,4 +44,6 @@ jobs:
           # fixtures come only from trusted main: drop every conftest.py from the PR, use main's
           find . -name conftest.py -not -path "./.git/*" -delete
           cp ../trusted/tests/conftest.py tests/conftest.py
-          pytest tests
+          cp ../trusted/scripts/tests/conftest.py scripts/tests/conftest.py
+          # coverage settings (sources, fail_under = 80) live in pyproject.toml
+          pytest tests scripts/tests --cov --cov-report=term-missing

@@ -1,4 +1,4 @@
-""""Every endpoint has a test" check (maintainer-owned).
+"""Check that every endpoint has a test (maintainer-owned).
 
 A middleware records every request as (method, route template). When the session
 finishes, the record is compared with the areas' routes:
@@ -64,8 +64,9 @@ def pytest_collection_modifyitems(config, items):
     if not area:
         return
     for item in items:
-        if _in_area(item.nodeid, area) and (item.get_closest_marker("skip") or item.get_closest_marker("skipif")
-                                              or item.get_closest_marker("xfail")):
+        if _in_area(item.nodeid, area) and (
+            item.get_closest_marker("skip") or item.get_closest_marker("skipif") or item.get_closest_marker("xfail")
+        ):
             SKIPPED_IN_AREA.append(item.nodeid)
 
 
@@ -80,8 +81,10 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.getoption("collectonly"):
         return
     # Only check runs that include the area tests (not e.g. `pytest scripts/tests`).
-    if not any(str(a).replace("\\", "/").rstrip("/") in ("", ".", "tests") or "tests/areas" in str(a)
-               for a in (session.config.args or ["."])):
+    if not any(
+        str(a).replace("\\", "/").rstrip("/") in ("", ".", "tests") or "tests/areas" in str(a)
+        for a in (session.config.args or ["."])
+    ):
         return
     failed = False
     missing = sorted(required_endpoints(_area()) - HIT)

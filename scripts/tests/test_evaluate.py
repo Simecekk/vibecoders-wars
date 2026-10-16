@@ -55,8 +55,7 @@ def test_excluded_votes(fresh, gh):
     gh.users["newbie"] = YOUNG
     s = run(fresh, gh)
     reasons = {v["voter"]: v["reason"] for v in s["pullRequests"][0]["votes"]}
-    assert reasons == {"alice": "is_author", "Simecekk": "is_maintainer",
-                       "newbie": "account_too_young"}
+    assert reasons == {"alice": "is_author", "Simecekk": "is_maintainer", "newbie": "account_too_young"}
     assert gh.merged == [] and terr(s, "validation")["status"] == "in_review"
     assert s["evaluations"][-1]["results"][0]["winnerPr"] is None  # minimum 1 point
 
@@ -170,10 +169,10 @@ def test_blocked_pr_is_skipped(fresh, gh):
 
 def test_invalid_limits(fresh, gh):
     gh.add_pr(1, "validation", "alice", created="2026-10-16T08:00:00Z")
-    gh.add_pr(2, "validation", "alice", created="2026-10-16T08:01:00Z")      # second PR same area
+    gh.add_pr(2, "validation", "alice", created="2026-10-16T08:01:00Z")  # second PR same area
     gh.add_pr(3, "error-handling", "alice", created="2026-10-16T08:02:00Z")
     gh.add_pr(4, "crud-endpoints", "alice", created="2026-10-16T08:03:00Z")  # third area
-    gh.add_pr(5, "auth", "bob")                                             # locked wave
+    gh.add_pr(5, "auth", "bob")  # locked wave
     run(fresh, gh)
     invalid = {n for n, p in gh.pulls.items() if {"name": "vv:invalid"} in p["labels"]}
     assert invalid == {2, 4, 5}
@@ -242,12 +241,31 @@ def test_idempotent(fresh, gh):
 
 # ---- vv:fix
 
+
 def claimed_state(state, area="crud-endpoints", owner="bob"):
     terr(state, area).update(status="claimed", owner=owner, winningPr=1, claimedAt="2026-10-15T18:00:00Z")
-    state["players"].append({"login": owner, "githubId": 1, "avatarUrl": "https://a.b/c", "status": "active",
-                             "joinedAt": "2026-10-15T18:00:00Z", "badges": [], "score": 10})
-    state["pointsLedger"].append({"id": f"claim:{area}", "player": owner, "points": 10, "reason": "claim",
-                                  "territoryId": area, "pr": 1, "at": "2026-10-15T18:00:00Z"})
+    state["players"].append(
+        {
+            "login": owner,
+            "githubId": 1,
+            "avatarUrl": "https://a.b/c",
+            "status": "active",
+            "joinedAt": "2026-10-15T18:00:00Z",
+            "badges": [],
+            "score": 10,
+        }
+    )
+    state["pointsLedger"].append(
+        {
+            "id": f"claim:{area}",
+            "player": owner,
+            "points": 10,
+            "reason": "claim",
+            "territoryId": area,
+            "pr": 1,
+            "at": "2026-10-15T18:00:00Z",
+        }
+    )
     return state
 
 
@@ -305,10 +323,11 @@ def test_fix_participation_once_per_area_and_none_for_maintainer(fresh, gh):
 
 # ---- clock and penalty
 
+
 def test_evaluation_hour_summer_and_winter():
-    assert is_evaluation_hour(datetime(2026, 7, 1, 18, 5, tzinfo=UTC))      # 20:05 CEST
+    assert is_evaluation_hour(datetime(2026, 7, 1, 18, 5, tzinfo=UTC))  # 20:05 CEST
     assert not is_evaluation_hour(datetime(2026, 7, 1, 19, 5, tzinfo=UTC))  # 21:05 CEST
-    assert is_evaluation_hour(datetime(2026, 12, 1, 19, 40, tzinfo=UTC))    # 20:40 CET (late cron)
+    assert is_evaluation_hour(datetime(2026, 12, 1, 19, 40, tzinfo=UTC))  # 20:40 CET (late cron)
     assert not is_evaluation_hour(datetime(2026, 12, 1, 18, 5, tzinfo=UTC))  # 19:05 CET
 
 
