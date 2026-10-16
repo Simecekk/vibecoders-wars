@@ -63,13 +63,33 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.dry_run }}
         run: |
+          # The evaluator merges PRs through the API, which moves main after our checkout.
+          # So: keep the computed state, reset to the latest main, re-apply it and push (with retries).
+          # Only the bot writes data/territories.json, so the computed state wins.
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/territories.json
-          if git diff --cached --quiet; then
+          if git diff --quiet -- data/territories.json; then
             echo "No state change, nothing to commit."
             [ "$DRY_RUN" = "true" ] && git push --dry-run origin HEAD:main
             exit 0
           fi
-          git commit -m "chore(state): evaluation $(date -u +%F) [skip ci]"
-          git push origin HEAD:main
+          cp data/territories.json "$RUNNER_TEMP/territories.json"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            cp "$RUNNER_TEMP/territories.json" data/territories.json
+            git add data/territories.json
+            if git diff --cached --quiet; then
+              echo "main already has this state."
+              exit 0
+            fi
+            git commit -m "chore(state): evaluation $(date -u +%F) [skip ci]"
+            if git push origin HEAD:main; then
+              echo "State pushed (attempt $attempt)."
+              exit 0
+            fi
+            echo "Push rejected, retrying..."
+            sleep $((attempt * 5))
+          done
+          echo "::error::could not push the state after 5 attempts (the next run reconciles merged PRs)"
+          exit 1
