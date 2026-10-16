@@ -70,7 +70,7 @@ Only accounts older than 30 days count. Each person can support only one PR per 
 Every day at 20:00 (Prague time) the bot evaluates the free areas. The PR with green CI and the most points (at least 1) **wins**: the bot merges it and the area is yours 🎉. The other PRs get the `vv:lost` label and are closed. No worries, try another area!
 
 ## Fixing someone else's area (`vv:fix`)
-Found a bug in a claimed area? Open a PR with the usual title (`[area-id] Fix ...`) and ask the maintainer to add the `vv:fix` label. It is merged once the area owner or the maintainer approves it. The owner keeps the area; you get +1 participation point (once per area).
+Found a bug in a claimed area? Open a PR titled `[fix:<area-id>] ...`, e.g. `[fix:validation] Reject empty email`. The bot adds the `vv:fix` label. Same rules as always (only the area's two folders, your own commits, a test for every endpoint). It is merged once the area owner or the maintainer approves it — 👍 don't count here. The owner keeps the area; you get +1 participation point (once per area). Fix PRs don't count toward your 2 open PRs.
 
 ## FAQ
 - **Can I have more PRs open?** Yes, at most 2, each for a different area. You can own only 1 area per wave; if you win one, your other PR in that wave is closed (you keep the participation point).
@@ -78,6 +78,7 @@ Found a bug in a claimed area? Open a PR with the usual title (`[area-id] Fix ..
 - **Do I edit `app/main.py`?** No. Your area is loaded automatically. Don't import anything from other areas.
 - **CI says `UNTESTED: GET /validation/items`.** No test calls that endpoint. Add one that calls it via `client`.
 - **Can I change files outside my area?** No, CI rejects the PR.
+- **Can I add my own `conftest.py`?** No. Fixtures come only from `tests/conftest.py` on main; CI rejects any `conftest.py` in a PR. Use the `client` fixture or helpers inside your test files.
 - **CI is red and I don't know why.** Click "Details" on the check and read the pytest output. Feel free to ask in a PR comment.
 - **My PR got `vv:invalid`.** The bot explains why in a comment (usually a wrong title or files outside the area). Fix it and the bot checks again.
 - **What is `vv:blocked`?** The maintainer's veto against cheating or broken PRs. Such a PR is not evaluated. For cheating, the maintainer can take away points and the area.

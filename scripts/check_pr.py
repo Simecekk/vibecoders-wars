@@ -18,10 +18,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from scripts.common import (
-    LABEL_FIX,
     MAINTAINER,
     STATE_PATH,
     area_from_title,
+    is_fix_title,
     load_json,
     territory_by_id,
     wave_by_number,
@@ -51,9 +51,10 @@ def check(pr: PullRequest, state: dict[str, Any]) -> tuple[str | None, list[str]
     errors: list[str] = []
     area = area_from_title(pr.title)
     if area is None:
-        return None, ["PR title must start with `[area-id]`, e.g. `[validation] Validate user signup`."]
+        return None, ["PR title must start with `[area-id]` (e.g. `[validation] Validate user signup`) "
+                      "or `[fix:area-id]` for a fix in a claimed area."]
 
-    is_fix = LABEL_FIX in pr.labels
+    is_fix = is_fix_title(pr.title)
     territory = territory_by_id(state).get(area)
     if territory is None:
         errors.append(f"Area `{area}` does not exist.")
@@ -61,7 +62,7 @@ def check(pr: PullRequest, state: dict[str, Any]) -> tuple[str | None, list[str]
         wave = wave_by_number(state).get(territory["wave"])
         if is_fix:
             if territory["status"] != "claimed":
-                errors.append(f"`{LABEL_FIX}` PRs are only for claimed areas; `{area}` is `{territory['status']}`.")
+                errors.append(f"`[fix:...]` PRs are only for claimed areas; `{area}` is `{territory['status']}`.")
         elif wave is None or wave["status"] != "open" or territory["status"] not in ("free", "in_review"):
             errors.append(f"Area `{area}` is not open for claiming (status `{territory['status']}`).")
 
@@ -73,6 +74,10 @@ def check(pr: PullRequest, state: dict[str, Any]) -> tuple[str | None, list[str]
     if outside:
         errors.append("Only these folders may change: " + ", ".join(f"`{a}`" for a in allowed)
                       + ". Changed outside: " + ", ".join(f"`{f}`" for f in outside))
+    conftests = [f for f in pr.files if f.rsplit("/", 1)[-1] == "conftest.py"]
+    if conftests:
+        errors.append("`conftest.py` files are not allowed in PRs (fixtures come from main): "
+                      + ", ".join(f"`{f}`" for f in conftests))
     if not pr.files:
         errors.append("The PR changes no files.")
 

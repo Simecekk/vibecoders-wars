@@ -37,5 +37,7 @@ jobs:
         env:
           VV_AREA: ${{ steps.pr.outputs.area }}
         run: |
+          # fixtures come only from trusted main: drop every conftest.py from the PR, use main's
+          find . -name conftest.py -not -path "./.git/*" -delete
           cp ../trusted/tests/conftest.py tests/conftest.py
           pytest tests

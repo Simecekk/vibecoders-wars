@@ -39,9 +39,10 @@ class FakeGitHub:
     reviewers: list[tuple[int, str]] = field(default_factory=list)
 
     def add_pr(self, number: int, area: str, author: str, created: str = "2026-10-16T09:00:00Z",
-               labels: tuple[str, ...] = (), ci: str = "success") -> None:
+               labels: tuple[str, ...] = (), ci: str = "success", fix: bool = False) -> None:
         sha = f"{number:040x}"
-        self.pulls[number] = {"number": number, "title": f"[{area}] Something", "user": {"login": author, "type": "User"},
+        title = f"[fix:{area}] Fix something" if fix else f"[{area}] Something"
+        self.pulls[number] = {"number": number, "title": title, "user": {"login": author, "type": "User"},
                               "created_at": created, "head": {"sha": sha}, "labels": [{"name": n} for n in labels],
                               "html_url": f"https://github.com/Simecekk/vibecoders-wars/pull/{number}"}
         self.ci[sha] = ci

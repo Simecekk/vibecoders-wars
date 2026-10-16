@@ -64,7 +64,7 @@ def test_maintainer_cannot_compete(fresh):
 
 def test_fix_into_claimed_area_passes(fresh):
     files = ["app/areas/crud-endpoints/router.py"]
-    assert check(pr(title="[crud-endpoints] Fix 500", files=files, labels=["vv:fix"]), claimed(fresh))[1] == []
+    assert check(pr(title="[fix:crud-endpoints] Fix 500", files=files), claimed(fresh)) == ("crud-endpoints", [])
 
 
 def test_claimed_area_without_fix_fails(fresh):
@@ -74,5 +74,22 @@ def test_claimed_area_without_fix_fails(fresh):
 
 
 def test_fix_into_free_area_fails(fresh):
-    _, errors = check(pr(labels=["vv:fix"]), fresh)
+    _, errors = check(pr(title="[fix:validation] x"), fresh)
     assert "only for claimed" in errors[0]
+
+
+def test_fix_label_without_fix_title_is_not_a_fix(fresh):
+    files = ["app/areas/crud-endpoints/router.py"]
+    _, errors = check(pr(title="[crud-endpoints] x", files=files, labels=["vv:fix"]), claimed(fresh))
+    assert "not open" in errors[0]
+
+
+def test_conftest_in_area_rejected(fresh):
+    files = ["app/areas/validation/router.py", "tests/areas/validation/conftest.py"]
+    _, errors = check(pr(files=files), fresh)
+    assert any("conftest.py" in e and "not allowed" in e for e in errors)
+
+
+def test_root_conftest_rejected(fresh):
+    _, errors = check(pr(files=["tests/conftest.py"]), fresh)
+    assert any("not allowed" in e for e in errors)

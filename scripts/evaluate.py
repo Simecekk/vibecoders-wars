@@ -16,6 +16,7 @@ Steps (all idempotent, state is validated before it is written):
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import os
 import re
@@ -37,6 +38,7 @@ from scripts.common import (
     area_from_title,
     dump_state,
     fmt_ts,
+    is_fix_title,
     load_json,
     parse_ts,
     territory_by_id,
@@ -74,6 +76,10 @@ class Pr:
     ci: str = "pending"
     validity: str = "valid"
     reasons: list[str] | None = None
+
+    @property
+    def is_fix(self) -> bool:
+        return is_fix_title(self.title)
 
     @classmethod
     def from_api(cls, raw: dict[str, Any]) -> Pr:
@@ -217,8 +223,9 @@ def process_fixes(state: State, gh: GitHub, prs: list[Pr], now: datetime) -> Non
     tmap = territory_by_id(state)
     ts = fmt_ts(now)
     for pr in prs:
-        if LABEL_FIX not in pr.labels or LABEL_BLOCKED in pr.labels:
+        if not pr.is_fix or LABEL_BLOCKED in pr.labels:
             continue
+        _label(gh, pr, LABEL_FIX)
         t = tmap.get(pr.area or "")
         if t is None or t["status"] != "claimed":
             continue
@@ -240,7 +247,6 @@ def process_fixes(state: State, gh: GitHub, prs: list[Pr], now: datetime) -> Non
             continue
         if pr.author not in (MAINTAINER, owner):
             _participation(state, gh, pr.author, t["id"], pr.number, ts, note="fix")
-        _record_pr(state, pr, state="merged", mergedAt=ts)
         gh.comment(pr.number, FIX_MERGED_TEXT.format(area=pr.area))
 
 
@@ -276,7 +282,28 @@ def assign_validity(state: State, prs: list[Pr]) -> None:
         pr.validity, pr.reasons = ("invalid", reasons) if reasons else ("valid", None)
 
 
-def evaluate(state: State, gh: GitHub, now: datetime) -> State:
+class _Counting:
+    """Wraps the GitHub client and counts writes that change the game (merge, labels, close)."""
+
+    def __init__(self, gh: GitHub) -> None:
+        self._gh, self.writes = gh, 0
+
+    def __getattr__(self, name: str) -> Any:
+        attr = getattr(self._gh, name)
+        if name in ("merge", "add_labels", "close"):
+            def counted(*a: Any, **kw: Any) -> Any:
+                result = attr(*a, **kw)
+                self.writes += 1
+                return result
+            return counted
+        return attr
+
+
+def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
+    """Return (new state, changed). When nothing changed (no merge, points, labels or badges),
+    the original state is returned untouched, so the workflow writes and commits nothing."""
+    original = copy.deepcopy(state)
+    gh = _Counting(gh)  # type: ignore[assignment]
     ts = fmt_ts(now)
     prs = [Pr.from_api(raw) for raw in gh.open_pulls()]
     prs = [p for p in prs if p.area is not None]
@@ -284,7 +311,7 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> State:
         pr.ci = gh.ci_status(pr.head_sha)
 
     process_fixes(state, gh, prs, now)
-    voting = [p for p in prs if LABEL_FIX not in p.labels]
+    voting = [p for p in prs if not p.is_fix]
     assign_validity(state, voting)
 
     tmap = territory_by_id(state)
@@ -361,11 +388,16 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> State:
             t["status"] = "in_review" if t["id"] in open_valid else "free"
     _advance_waves(state, ts)
 
+    badges = sum(len(p["badges"]) for p in state["players"])
+    changed = (gh.writes > 0 or len(state["pointsLedger"]) != len(original["pointsLedger"])  # type: ignore[attr-defined]
+               or badges != sum(len(p["badges"]) for p in original["players"]))
+    if not changed:
+        return original, False
     if results:
         state["evaluations"].append({"at": ts, "results": results})
     _recompute_scores(state)
     state["updatedAt"] = ts
-    return state
+    return state, True
 
 
 def _advance_waves(state: State, ts: str) -> None:
@@ -474,7 +506,10 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - glue
         state = penalty(state, args.penalty[0], args.penalty[1], args.note, now)
     else:
         gh = RestGitHub(os.environ.get("GITHUB_REPOSITORY", REPO), os.environ["GH_TOKEN"])
-        state = evaluate(state, gh, now)
+        state, changed = evaluate(state, gh, now)
+        if not changed:
+            print("OK: nothing changed, state not written")
+            return 0
     errors = validate(state)
     if errors:
         print("\n".join(f"ERROR: {e}" for e in errors), file=sys.stderr)

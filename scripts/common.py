@@ -17,7 +17,7 @@ SCHEMA_PATH = ROOT / "schema" / "schema.json"
 REPO = "Simecekk/vibecoders-wars"
 MAINTAINER = "Simecekk"
 TIER_POINTS: dict[str, int] = {"S": 10, "M": 25, "L": 50}
-TITLE_RE = re.compile(r"^\[([a-z0-9-]+)\]")
+TITLE_RE = re.compile(r"^\[(fix:)?([a-z0-9-]+)\]")
 
 LABEL_INVALID = "vv:invalid"
 LABEL_LOST = "vv:lost"
@@ -48,7 +48,13 @@ def fmt_ts(value: datetime) -> str:
 
 def area_from_title(title: str) -> str | None:
     m = TITLE_RE.match(title or "")
-    return m.group(1) if m else None
+    return m.group(2) if m else None
+
+
+def is_fix_title(title: str) -> bool:
+    """Fix PRs for a claimed area are titled `[fix:<area-id>] ...`."""
+    m = TITLE_RE.match(title or "")
+    return bool(m and m.group(1))
 
 
 def territory_by_id(state: State) -> dict[str, dict[str, Any]]:

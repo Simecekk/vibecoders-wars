@@ -26,6 +26,6 @@ pytest
 ```
 
 ## Labels
-`area:<id>`, `vv:invalid` (breaks the rules), `vv:lost` (lost the vote), `vv:blocked` (maintainer veto), `vv:fix` (fix in a claimed area).
+`area:<id>`, `vv:invalid` (breaks the rules), `vv:lost` (lost the vote), `vv:blocked` (maintainer veto), `vv:fix` (fix in a claimed area; added by the bot to PRs titled `[fix:<area-id>] ...`).
 
 License: [MIT](LICENSE).

@@ -17,7 +17,7 @@ def ledger(state, reason=None):
 
 
 def run(state, gh, now=NOW):
-    out = evaluate(state, gh, now)
+    out, _ = evaluate(state, gh, now)
     assert validate(out) == [], validate(out)
     return out
 
@@ -198,6 +198,36 @@ def test_merge_failure_keeps_in_review(fresh, gh):
     assert any("merging failed" in b for _, b in gh.comments)
 
 
+def test_no_change_no_evaluation_entry(fresh, gh):
+    gh.add_pr(1, "validation", "alice")
+    gh.users["newbie"] = YOUNG
+    gh.thumbs(1, "newbie")
+    s1, changed1 = evaluate(fresh, gh, NOW)  # first run: badge -> changed
+    assert changed1 and len(s1["evaluations"]) == 1
+    before = copy.deepcopy(s1)
+    s2, changed2 = evaluate(s1, gh, NOW)
+    assert not changed2 and s2 == before  # no merge/points/labels: nothing appended, nothing to write
+    young = [v for v in s1["pullRequests"][0]["votes"] if v["voter"] == "newbie"]
+    assert young[0]["reason"] == "account_too_young"  # kept in the audit
+
+
+def test_bot_votes_never_stored(fresh, gh):
+    gh.add_pr(1, "validation", "alice")
+    gh.thumbs(1, "dependabot[bot]", vtype="Bot")
+    gh.thumbs(1, "renovate", vtype="Bot")
+    gh.thumbs(1, "v1")
+    s = run(fresh, gh)
+    assert [v["voter"] for p in s["pullRequests"] for v in p.get("votes", [])] == ["v1"]
+
+
+def test_fix_label_alone_is_not_a_fix(fresh, gh):
+    s = claimed_state(fresh)
+    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",))  # normal title
+    gh.review(10, "bob")
+    run(s, gh)
+    assert gh.merged == [] and {"name": "vv:invalid"} in gh.pulls[10]["labels"]
+
+
 def test_idempotent(fresh, gh):
     gh.add_pr(1, "validation", "alice")
     gh.add_pr(2, "validation", "bob")
@@ -223,7 +253,7 @@ def claimed_state(state, area="crud-endpoints", owner="bob"):
 
 def test_fix_merged_with_owner_approval(fresh, gh):
     s = claimed_state(fresh)
-    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",))
+    gh.add_pr(10, "crud-endpoints", "carol", fix=True)
     gh.thumbs(10, "v1")  # thumbs on fixes do not matter
     gh.review(10, "bob")
     s = run(s, gh)
@@ -231,12 +261,14 @@ def test_fix_merged_with_owner_approval(fresh, gh):
     p = ledger(s, "participation")
     assert [(e["player"], e["points"], e.get("note")) for e in p] == [("carol", 1, "fix")]
     assert s["evaluations"] == []  # skipped in voting
+    assert {"name": "vv:fix"} in gh.pulls[10]["labels"]  # bot labels [fix:...] PRs
+    assert all(p["number"] != 10 for p in s["pullRequests"])
     assert (10, "bob") in gh.reviewers
 
 
 def test_fix_merged_with_maintainer_approval(fresh, gh):
     s = claimed_state(fresh)
-    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",))
+    gh.add_pr(10, "crud-endpoints", "carol", fix=True)
     gh.review(10, "Simecekk")
     run(s, gh)
     assert gh.merged == [10]
@@ -244,7 +276,7 @@ def test_fix_merged_with_maintainer_approval(fresh, gh):
 
 def test_fix_not_merged_without_owner_approval(fresh, gh):
     s = claimed_state(fresh)
-    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",))
+    gh.add_pr(10, "crud-endpoints", "carol", fix=True)
     gh.thumbs(10, "v1")
     gh.review(10, "dave")  # random approver
     s = run(s, gh)
@@ -253,7 +285,7 @@ def test_fix_not_merged_without_owner_approval(fresh, gh):
 
 def test_fix_not_merged_with_red_ci(fresh, gh):
     s = claimed_state(fresh)
-    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",), ci="failure")
+    gh.add_pr(10, "crud-endpoints", "carol", fix=True, ci="failure")
     gh.review(10, "bob")
     run(s, gh)
     assert gh.merged == []
@@ -261,9 +293,9 @@ def test_fix_not_merged_with_red_ci(fresh, gh):
 
 def test_fix_participation_once_per_area_and_none_for_maintainer(fresh, gh):
     s = claimed_state(fresh)
-    gh.add_pr(10, "crud-endpoints", "carol", labels=("vv:fix",))
-    gh.add_pr(11, "crud-endpoints", "carol", labels=("vv:fix",))
-    gh.add_pr(12, "crud-endpoints", "Simecekk", labels=("vv:fix",))
+    gh.add_pr(10, "crud-endpoints", "carol", fix=True)
+    gh.add_pr(11, "crud-endpoints", "carol", fix=True)
+    gh.add_pr(12, "crud-endpoints", "Simecekk", fix=True)
     for n in (10, 11, 12):
         gh.review(n, "bob")
     s = run(s, gh)

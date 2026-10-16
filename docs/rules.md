@@ -40,5 +40,6 @@ Each account votes only **once per area** — its earliest vote counts. 👍 and
 - You can own **at most 1 area per wave** and have **at most 2 open PRs**, each for a different area.
 - `vv:blocked` (maintainer veto): the PR is not evaluated. For cheating the maintainer can take away points and the area; every such action is visible in the points history.
 - If your winning code has to be reverted within 7 days, you lose the area and the points.
-- Fixes in someone else's area: `vv:fix` (see CONTRIBUTING.md). The owner keeps the area, the fix author gets +1 participation.
+- Fixes in someone else's area: title the PR `[fix:<area-id>] ...`; the bot labels it `vv:fix`. It is merged after an approve from the area owner or the maintainer, the owner keeps the area and the fix author gets +1 participation (once per area). Fix PRs are not part of the daily vote.
+- PRs may not contain any `conftest.py`; test fixtures come only from main.
 - Be kind: the [Code of Conduct](../CODE_OF_CONDUCT.md) applies.
