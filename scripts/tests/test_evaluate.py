@@ -318,3 +318,14 @@ def test_penalty(example):
     t = terr(s, "crud-endpoints")
     assert (t["status"], t["owner"]) == ("free", None)
     assert ledger(s, "penalty_cheating")[0]["points"] == -10
+
+
+def test_dry_run_does_not_write(fresh, gh, capsys):
+    from scripts.evaluate import DryRun
+
+    gh.add_pr(1, "validation", "alice")
+    gh.add_pr(2, "validation", "bob")
+    gh.thumbs(1, "v1")
+    evaluate(fresh, DryRun(gh), NOW)
+    assert gh.merged == [] and gh.closed == [] and gh.comments == []
+    assert "would merge" in capsys.readouterr().out

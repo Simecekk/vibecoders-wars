@@ -50,6 +50,8 @@ def check(pr: PullRequest, state: dict[str, Any]) -> tuple[str | None, list[str]
     """Return (area id, list of human-readable errors)."""
     errors: list[str] = []
     area = area_from_title(pr.title)
+    if area is None and pr.author == MAINTAINER:
+        return None, []  # maintainer infrastructure PR (no area): only the full test suite applies
     if area is None:
         return None, ["PR title must start with `[area-id]` (e.g. `[validation] Validate user signup`) "
                       "or `[fix:area-id]` for a fix in a claimed area."]
@@ -121,7 +123,7 @@ def main() -> int:  # pragma: no cover - glue
     for e in errors:
         print(f"::error::{e}")
     if not errors:
-        print(f"OK: PR is valid for area `{area}`")
+        print(f"OK: PR is valid for area `{area}`" if area else "OK: maintainer PR without an area, running all tests")
     return 1 if errors else 0
 
 

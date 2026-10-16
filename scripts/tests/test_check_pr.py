@@ -93,3 +93,13 @@ def test_conftest_in_area_rejected(fresh):
 def test_root_conftest_rejected(fresh):
     _, errors = check(pr(files=["tests/conftest.py"]), fresh)
     assert any("not allowed" in e for e in errors)
+
+
+def test_maintainer_infra_pr_without_area(fresh):
+    files = [".github/workflows/evaluate.yml", "scripts/evaluate.py"]
+    assert check(pr(title="Use deploy key", author="Simecekk", files=files,
+                    commits=[Commit("a" * 40, "Simecekk", "x")]), fresh) == (None, [])
+
+
+def test_player_infra_pr_rejected(fresh):
+    assert check(pr(title="Use deploy key", files=["scripts/evaluate.py"]), fresh)[1]
