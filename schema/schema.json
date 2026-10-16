@@ -489,6 +489,7 @@
               "co_authors",
               "already_owns_in_wave",
               "author_is_maintainer",
+              "author_is_bot",
               "missing_endpoint_tests",
               "too_many_open_prs",
               "duplicate_area_pr",

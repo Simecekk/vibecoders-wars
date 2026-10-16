@@ -307,8 +307,8 @@ def assign_validity(state: State, prs: list[Pr]) -> None:
             reasons.append("unknown_area")
         elif waves[t["wave"]]["status"] != "open" or t["status"] not in ("free", "in_review"):
             reasons.append("area_not_open")
-        if pr.author == MAINTAINER or pr.author_type == "Bot":
-            reasons.append("author_is_maintainer")
+        if pr.author_type == "Bot":
+            reasons.append("author_is_bot")
         if t is not None and (pr.author, t["wave"]) in owned_waves:
             reasons.append("already_owns_in_wave")
         areas = per_author.setdefault(pr.author, [])

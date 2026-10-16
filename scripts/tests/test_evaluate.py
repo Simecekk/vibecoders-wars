@@ -1,7 +1,7 @@
 import copy
 from datetime import UTC, datetime
 
-from scripts.evaluate import evaluate, is_evaluation_hour, penalty
+from scripts.evaluate import Pr, assign_validity, evaluate, is_evaluation_hour, penalty
 from scripts.validate_state import validate
 
 NOW = datetime(2026, 10, 16, 18, 0, 30, tzinfo=UTC)  # 20:00:30 Prague (CEST)
@@ -58,6 +58,22 @@ def test_excluded_votes(fresh, gh):
     assert reasons == {"alice": "is_author", "Simecekk": "is_maintainer", "newbie": "account_too_young"}
     assert gh.merged == [] and terr(s, "validation")["status"] == "in_review"
     assert s["evaluations"][-1]["results"][0]["winnerPr"] is None  # minimum 1 point
+
+
+def test_maintainer_can_win_an_area(fresh, gh):
+    gh.add_pr(1, "validation", "Simecekk")
+    gh.thumbs(1, "v1")
+    s = run(fresh, gh)
+    assert gh.merged == [1]
+    assert terr(s, "validation")["owner"] == "Simecekk"
+
+
+def test_bot_author_is_invalid(fresh, gh):
+    gh.add_pr(1, "validation", "dependabot[bot]")
+    gh.pulls[1]["user"]["type"] = "Bot"
+    pr = Pr.from_api(gh.pulls[1])
+    assign_validity(fresh, [pr])
+    assert (pr.validity, pr.reasons) == ("invalid", ["author_is_bot"])
 
 
 def test_only_first_vote_in_area_counts(fresh, gh):

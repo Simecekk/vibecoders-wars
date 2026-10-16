@@ -70,9 +70,6 @@ def check(pr: PullRequest, state: dict[str, Any]) -> tuple[str | None, list[str]
         elif wave is None or wave["status"] != "open" or territory["status"] not in ("free", "in_review"):
             errors.append(f"Area `{area}` is not open for claiming (status `{territory['status']}`).")
 
-    if pr.author == MAINTAINER and not is_fix:
-        errors.append("The maintainer does not compete for areas.")
-
     allowed = (f"app/areas/{area}/", f"tests/areas/{area}/")
     outside = [f for f in pr.files if not f.startswith(allowed)]
     if outside:
