@@ -1,9 +1,9 @@
 # Vibecoders Wars
 
-A beginner-friendly open-source game: together we build one FastAPI backend, one **area** at a time, through pull requests. Win an area with the most 👍 and approvals and it's yours on the map at [vibecoders.cz/valky](https://www.vibecoders.cz/valky/).
+A beginner-friendly open-source game: together we build one FastAPI backend, one **area** at a time, through pull requests. Win an area with the most 👍 and it's yours on the map at [vibecoders.cz/wars](https://www.vibecoders.cz/wars/).
 
 - **How to play:** [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Rules:** [docs/rules.md](docs/rules.md)
+- **Rules:** [RULES.md](RULES.md)
 - **Game state:** [data/territories.json](data/territories.json) (schema: [schema/schema.json](schema/schema.json)), written only by the bot.
 
 ## Layout
