@@ -1,9 +1,25 @@
 {
   "schemaVersion": "2.0",
   "repo": "Simecekk/vibecoders-wars",
-  "updatedAt": "2026-10-16T00:00:00Z",
+  "updatedAt": "2026-10-16T18:12:04Z",
   "currentWave": 1,
-  "players": [],
+  "players": [
+    {
+      "login": "Simecekk",
+      "githubId": 49183180,
+      "avatarUrl": "https://avatars.githubusercontent.com/u/49183180?v=4",
+      "status": "active",
+      "joinedAt": "2026-10-16T18:12:04Z",
+      "score": 0,
+      "badges": [
+        {
+          "id": "first-pr",
+          "awardedAt": "2026-10-16T18:12:04Z",
+          "pr": 8
+        }
+      ]
+    }
+  ],
   "waves": [
     {
       "number": 1,
@@ -63,7 +79,7 @@
         "r": -1
       },
       "name": "Input validation (Pydantic)",
-      "status": "free",
+      "status": "in_review",
       "owner": null,
       "winningPr": null,
       "claimedAt": null
@@ -222,7 +238,51 @@
       "claimedAt": null
     }
   ],
-  "pullRequests": [],
-  "evaluations": [],
+  "pullRequests": [
+    {
+      "number": 8,
+      "url": "https://github.com/Simecekk/vibecoders-wars/pull/8",
+      "title": "[validation] Validate user signup",
+      "author": "Simecekk",
+      "territoryId": "validation",
+      "state": "open",
+      "createdAt": "2026-10-16T17:42:17Z",
+      "headSha": "f606d45d499c632a3b96985b9792ceeaf5e92287",
+      "ciStatus": "success",
+      "validity": "valid",
+      "labels": [],
+      "votes": [
+        {
+          "voter": "Simecekk",
+          "type": "thumbs_up",
+          "at": "2026-10-16T18:10:01Z",
+          "counted": false,
+          "reason": "is_author"
+        }
+      ],
+      "score": 0,
+      "result": "pending"
+    }
+  ],
+  "evaluations": [
+    {
+      "at": "2026-10-16T18:12:04Z",
+      "results": [
+        {
+          "territoryId": "validation",
+          "winnerPr": null,
+          "candidates": [
+            {
+              "pr": 8,
+              "thumbsUp": 0,
+              "approvals": 0,
+              "score": 0
+            }
+          ],
+          "note": "no PR has at least 1 point"
+        }
+      ]
+    }
+  ],
   "pointsLedger": []
 }
