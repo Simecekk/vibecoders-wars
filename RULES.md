@@ -45,7 +45,7 @@
 
 ## Fair play
 - You can have at most `maxOpenPrsPerPlayer` open PRs at a time.
-- The maintainer (Simecekk) doesn't vote but can label cheating or broken PRs `vv:blocked`. Those PRs can't win, and he can take an area away from a cheater.
+- The maintainer (Simecekk) can play like anyone else but doesn't vote. He can label cheating or broken PRs `vv:blocked`. Those PRs can't win, and he can take an area away from a cheater.
 - If a winning PR has to be reverted, the area goes back to its previous owner. A brand-new area is removed.
 - Be kind.
 
@@ -73,7 +73,7 @@
 - Every commit author is the PR author, with no `Co-authored-by`.
 - CI is green on the head commit.
 - The PR has no `vv:blocked` label.
-- The author is not the maintainer or a bot, and has ≤ `maxOpenPrsPerPlayer` open game PRs. If they have more, the newest get `vv:invalid`.
+- The author is not a bot, and has ≤ `maxOpenPrsPerPlayer` open game PRs. If they have more, the newest get `vv:invalid`.
 
 The bot adds the label `area:<id>`, plus `vv:invalid` with a comment when the PR breaks a rule.
 
