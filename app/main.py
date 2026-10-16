@@ -1,7 +1,7 @@
 """Vibecoders Wars FastAPI app (maintainer-owned; players never edit this file).
 
 Areas are discovered automatically: every `app/areas/<id>/router.py` exporting
-`router: APIRouter` is mounted under the `/<id>` prefix. The root `/` serves the area map (app/map_page.py).
+`router: APIRouter` is mounted under the `/<id>` prefix. `/` (area map, leaderboard, rules) and `/rules` are served by app/pages.py.
 """
 
 from __future__ import annotations
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from fastapi import APIRouter, FastAPI
 
-from app.map_page import router as map_router
+from app.pages import router as pages_router
 
 AREAS_DIR = Path(__file__).parent / "areas"
 
@@ -30,7 +30,7 @@ def discover_areas() -> list[tuple[str, APIRouter]]:
 
 def create_app() -> FastAPI:
     application = FastAPI(title="Vibecoders Wars")
-    application.include_router(map_router)
+    application.include_router(pages_router)
     for area_id, router in discover_areas():
         application.include_router(router, prefix=f"/{area_id}", tags=[area_id])
 
