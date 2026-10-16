@@ -17,8 +17,9 @@ def run(tmp_path, area_env, drop_echo):
     if drop_echo:
         test.write_text(test.read_text().split("def test_echo")[0])
     env = {**os.environ, "VV_AREA": area_env} if area_env else {k: v for k, v in os.environ.items() if k != "VV_AREA"}
-    return subprocess.run([sys.executable, "-m", "pytest", "tests", "-p", "no:cacheprovider"], cwd=tmp_path,
-                          env=env, capture_output=True, text=True)
+    return subprocess.run(
+        [sys.executable, "-m", "pytest", "tests", "-p", "no:cacheprovider"], cwd=tmp_path, env=env, capture_output=True, text=True
+    )
 
 
 def test_all_tested_passes(tmp_path):
@@ -41,8 +42,12 @@ def test_skip_in_area_fails(tmp_path):
         shutil.copytree(ROOT / d, tmp_path / d, ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
     shutil.copy(ROOT / "pyproject.toml", tmp_path)
     shutil.copy(ROOT / "RULES.md", tmp_path)
-    (tmp_path / "tests/areas/_example/test_skip.py").write_text(
-        "import pytest\n\n@pytest.mark.skip\ndef test_later():\n    pass\n")
-    res = subprocess.run([sys.executable, "-m", "pytest", "tests", "-p", "no:cacheprovider"], cwd=tmp_path,
-                         env={**os.environ, "VV_AREA": "_example"}, capture_output=True, text=True)
+    (tmp_path / "tests/areas/_example/test_skip.py").write_text("import pytest\n\n@pytest.mark.skip\ndef test_later():\n    pass\n")
+    res = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests", "-p", "no:cacheprovider"],
+        cwd=tmp_path,
+        env={**os.environ, "VV_AREA": "_example"},
+        capture_output=True,
+        text=True,
+    )
     assert res.returncode == 1 and "skip/xfail" in res.stdout
