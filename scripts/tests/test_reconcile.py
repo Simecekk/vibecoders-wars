@@ -1,4 +1,5 @@
 """Self-healing: a merged winner whose state write was lost gets its owner recorded."""
+
 import copy
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
