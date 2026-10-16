@@ -46,18 +46,32 @@ def test_thumbs_and_approve_on_same_pr_add_up(fresh, gh):
     assert s["evaluations"][-1]["results"][0]["candidates"][0]["score"] == 3
 
 
-def test_excluded_votes(fresh, gh):
+def test_author_maintainer_and_new_accounts_count(fresh, gh):
     gh.add_pr(1, "validation", "alice")
-    gh.thumbs(1, "alice")  # author
-    gh.thumbs(1, "dependabot[bot]", vtype="Bot")
-    gh.thumbs(1, "Simecekk")
-    gh.thumbs(1, "newbie")
+    gh.thumbs(1, "alice")  # author: counts
+    gh.thumbs(1, "dependabot[bot]", vtype="Bot")  # bot: never counted
+    gh.thumbs(1, "Simecekk")  # maintainer: counts
+    gh.thumbs(1, "newbie")  # young account: counts (no age check)
     gh.users["newbie"] = YOUNG
     s = run(fresh, gh)
     reasons = {v["voter"]: v["reason"] for v in s["pullRequests"][0]["votes"]}
-    assert reasons == {"alice": "is_author", "Simecekk": "is_maintainer", "newbie": "account_too_young"}
+    assert reasons == {"alice": "ok", "Simecekk": "ok", "newbie": "ok"}
+    assert gh.merged == [1]
+
+
+def test_author_own_like_is_enough_to_win(fresh, gh):
+    gh.add_pr(1, "validation", "alice")
+    gh.thumbs(1, "alice")
+    s = run(fresh, gh)
+    assert gh.merged == [1] and terr(s, "validation")["owner"] == "alice"
+
+
+def test_no_valid_vote_no_winner(fresh, gh):
+    gh.add_pr(1, "validation", "alice")
+    gh.thumbs(1, "dependabot[bot]", vtype="Bot")
+    s = run(fresh, gh)
     assert gh.merged == [] and terr(s, "validation")["status"] == "in_review"
-    assert s["evaluations"][-1]["results"][0]["winnerPr"] is None  # minimum 1 point
+    assert s["evaluations"][-1]["results"][0]["winnerPr"] is None  # minimum 1 valid vote
 
 
 def test_maintainer_can_win_an_area(fresh, gh):
@@ -215,15 +229,11 @@ def test_merge_failure_keeps_in_review(fresh, gh):
 
 def test_no_change_no_evaluation_entry(fresh, gh):
     gh.add_pr(1, "validation", "alice")
-    gh.users["newbie"] = YOUNG
-    gh.thumbs(1, "newbie")
     s1, changed1 = evaluate(fresh, gh, NOW)  # first run: badge -> changed
     assert changed1 and len(s1["evaluations"]) == 1
     before = copy.deepcopy(s1)
     s2, changed2 = evaluate(s1, gh, NOW)
     assert not changed2 and s2 == before  # no merge/points/labels: nothing appended, nothing to write
-    young = [v for v in s1["pullRequests"][0]["votes"] if v["voter"] == "newbie"]
-    assert young[0]["reason"] == "account_too_young"  # kept in the audit
 
 
 def test_bot_votes_never_stored(fresh, gh):

@@ -3,7 +3,7 @@
 Never opened a pull request? Perfect, that's what this game teaches. Rules: [RULES.md](RULES.md).
 
 ## 1. Get a GitHub account
-Sign up at <https://github.com>. You can open PRs right away. Your 👍 counts once your account is 30 days old.
+Sign up at <https://github.com>. You can open PRs right away. Your 👍 counts right away.
 
 ## 2. Fork
 Open `https://github.com/Simecekk/vibecoders-wars` and click **Fork**.
@@ -57,7 +57,7 @@ All commits must be yours (no `Co-authored-by`).
 Click **Compare & pull request** and title it `[validation] Validate item names`. Wait for CI ✅, and if it's red, fix the code and push again.
 
 ## 9. Get 👍
-Share your PR link. Each person (not you, not a bot, account older than 30 days) can add one 👍.
+Share your PR link. Each person (including you, but not a bot) can add one 👍.
 
 ## 10. What happens at 20:00 (Prague)
 One PR wins each day: the eligible PR with the most 👍. The bot merges it, and the area is yours 🎉. Didn't win? Your PR stays open and keeps its 👍 for tomorrow.

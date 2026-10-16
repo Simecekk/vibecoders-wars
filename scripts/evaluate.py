@@ -22,7 +22,7 @@ import os
 import re
 import sys
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from typing import Any, Protocol
 from zoneinfo import ZoneInfo
 
@@ -46,7 +46,6 @@ from scripts.common import (
 )
 
 PRAGUE = ZoneInfo("Europe/Prague")
-MIN_ACCOUNT_AGE = timedelta(days=30)
 
 
 class GitHub(Protocol):
@@ -190,13 +189,7 @@ def _label(gh: GitHub, pr: Pr, label: str) -> None:
 # --------------------------------------------------------------------------- votes
 
 
-def _account_old_enough(gh: GitHub, login: str, at: datetime, cache: dict[str, bool]) -> bool:
-    if login not in cache:
-        cache[login] = parse_ts(gh.user(login)["created_at"]) < at - MIN_ACCOUNT_AGE
-    return cache[login]
-
-
-def collect_votes(gh: GitHub, prs: list[Pr], now: datetime, age_cache: dict[str, bool]) -> dict[int, list[dict[str, Any]]]:
+def collect_votes(gh: GitHub, prs: list[Pr], now: datetime) -> dict[int, list[dict[str, Any]]]:
     """Votes for candidate PRs of ONE area, with counted/reason per vote."""
     raw: list[tuple[datetime, int, str, str, str]] = []  # (at, pr, voter, voter_type, vote type)
     for pr in prs:
@@ -211,18 +204,12 @@ def collect_votes(gh: GitHub, prs: list[Pr], now: datetime, age_cache: dict[str,
             if rv["state"] == "APPROVED":
                 raw.append((parse_ts(rv["submitted_at"]), pr.number, login, rv["user"].get("type", "User"), "approval"))
 
-    authors = {pr.number: pr.author for pr in prs}
     first_pr_of_voter: dict[str, int] = {}
     votes: dict[int, list[dict[str, Any]]] = {pr.number: [] for pr in prs}
     for at, number, voter, vtype, kind in sorted(raw, key=lambda v: (v[0], v[1])):
-        if voter == authors[number]:
-            reason = "is_author"
-        elif vtype == "Bot" or voter.endswith("[bot]"):
+        # The PR author's and the maintainer's own votes count (for now); there is no account-age check.
+        if vtype == "Bot" or voter.endswith("[bot]"):
             continue  # not counted; not stored either, schema v2 `login` does not allow "[bot]" logins
-        elif voter == MAINTAINER:
-            reason = "is_maintainer"
-        elif not _account_old_enough(gh, voter, now, age_cache):
-            reason = "account_too_young"
         elif first_pr_of_voter.setdefault(voter, number) != number:
             reason = "already_voted_in_area"
         else:
@@ -380,13 +367,12 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
 
     candidates = [p for p in voting if p.validity == "valid" and p.ci == "success"]
     results: list[dict[str, Any]] = []
-    age_cache: dict[str, bool] = {}
     closed: set[int] = set()
     winners: dict[str, Pr] = {}
 
     for area in sorted({p.area for p in candidates if p.area}):
         area_prs = [p for p in candidates if p.area == area]
-        votes = collect_votes(gh, area_prs, now, age_cache)
+        votes = collect_votes(gh, area_prs, now)
         scored = []
         for p in area_prs:
             up, ap, total = score(votes[p.number])
