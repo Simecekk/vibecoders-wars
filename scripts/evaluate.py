@@ -236,9 +236,32 @@ LOST_OTHER_TEXT = (
 )
 INVALID_TEXT = "This PR does not follow the game rules, so it is not counted: {reasons}. See CONTRIBUTING.md."
 MERGE_FAILED_TEXT = (
-    "This PR won area `{area}`, but merging failed (probably a conflict). "
-    "Please update your branch; the area stays in review until the next evaluation."
+    "This PR won area `{area}`, but the bot could not merge it: {reason}. "
+    "The area stays in review and the next evaluation will try again."
 )
+
+
+class GitHubApiError(Exception):
+    """A GitHub REST call failed; carries the HTTP status and GitHub's message."""
+
+    def __init__(self, method: str, path: str, status: int, message: str) -> None:
+        self.method, self.path, self.status, self.message = method, path, status, message
+        super().__init__(f"{method} {path} -> HTTP {status}: {message}")
+
+
+def _merge_failure_reason(exc: Exception) -> str:
+    if isinstance(exc, GitHubApiError):
+        return f"GitHub API returned HTTP {exc.status} ({exc.message})"
+    return f"{type(exc).__name__}: {exc}"
+
+
+def _report_merge_failure(gh: Any, number: int, area: str, exc: Exception) -> str:
+    reason = _merge_failure_reason(exc)
+    print(f"::warning::merge of PR #{number} (area {area}) failed: {exc}", file=sys.stderr)
+    gh.comment(number, MERGE_FAILED_TEXT.format(area=area, reason=reason))
+    return reason
+
+
 FIX_MERGED_TEXT = "Fix merged, thank you! 🛠️ Area `{area}` keeps its owner. You get +1 participation point."
 
 
@@ -268,8 +291,8 @@ def process_fixes(state: State, gh: GitHub, prs: list[Pr], now: datetime) -> Non
             continue
         try:
             gh.merge(pr.number, pr.title)
-        except Exception:  # noqa: BLE001 - any API failure means "try again tomorrow"
-            gh.comment(pr.number, MERGE_FAILED_TEXT.format(area=pr.area))
+        except Exception as exc:  # noqa: BLE001 - any API failure means "try again tomorrow"
+            _report_merge_failure(gh, pr.number, pr.area or "", exc)
             continue
         if pr.author not in (MAINTAINER, owner):
             _participation(state, gh, pr.author, t["id"], pr.number, ts, note="fix")
@@ -392,9 +415,8 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
             continue
         try:
             gh.merge(winner.number, winner.title)
-        except Exception:  # noqa: BLE001
-            gh.comment(winner.number, MERGE_FAILED_TEXT.format(area=area))
-            results[-1]["note"] = "merge failed"
+        except Exception as exc:  # noqa: BLE001
+            results[-1]["note"] = f"merge failed: {_report_merge_failure(gh, winner.number, area, exc)}"
             continue
         t = tmap[area]
         _player(state, gh, winner.author, ts)
@@ -511,6 +533,7 @@ class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehea
         self.repo, self.token = repo, token
 
     def _req(self, method: str, path: str, body: Any = None) -> Any:
+        import urllib.error
         import urllib.request
 
         url = path if path.startswith("http") else f"https://api.github.com{path}"
@@ -521,9 +544,17 @@ class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehea
             method=method,
             headers={"Authorization": f"Bearer {self.token}", "Accept": "application/vnd.github+json"},
         )
-        with urllib.request.urlopen(req) as resp:
-            raw = resp.read()
-            link = resp.headers.get("Link", "")
+        try:
+            with urllib.request.urlopen(req) as resp:
+                raw = resp.read()
+                link = resp.headers.get("Link", "")
+        except urllib.error.HTTPError as e:
+            detail = e.read().decode(errors="replace")
+            try:
+                msg = json.loads(detail).get("message", detail)
+            except ValueError:
+                msg = detail
+            raise GitHubApiError(method, url, e.code, msg or e.reason) from None
         out = json.loads(raw) if raw else None
         m = re.search(r'<([^>]+)>;\s*rel="next"', link)
         if m and isinstance(out, list):
