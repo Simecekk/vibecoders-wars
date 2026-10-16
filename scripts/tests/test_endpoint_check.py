@@ -12,6 +12,7 @@ def run(tmp_path, area_env, drop_echo):
     for d in ("app", "tests", "data"):
         shutil.copytree(ROOT / d, tmp_path / d, ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copy(ROOT / "pyproject.toml", tmp_path)
+    shutil.copy(ROOT / "RULES.md", tmp_path)
     test = tmp_path / "tests/areas/_example/test_example.py"
     if drop_echo:
         test.write_text(test.read_text().split("def test_echo")[0])
@@ -39,6 +40,7 @@ def test_skip_in_area_fails(tmp_path):
     for d in ("app", "tests", "data"):
         shutil.copytree(ROOT / d, tmp_path / d, ignore=shutil.ignore_patterns("__pycache__"), dirs_exist_ok=True)
     shutil.copy(ROOT / "pyproject.toml", tmp_path)
+    shutil.copy(ROOT / "RULES.md", tmp_path)
     (tmp_path / "tests/areas/_example/test_skip.py").write_text(
         "import pytest\n\n@pytest.mark.skip\ndef test_later():\n    pass\n")
     res = subprocess.run([sys.executable, "-m", "pytest", "tests", "-p", "no:cacheprovider"], cwd=tmp_path,

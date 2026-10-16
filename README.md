@@ -20,7 +20,7 @@ scripts/validate_state.py validates data/territories.json
 
 ## Running the app
 
-The app is served at http://localhost:8000. Interactive API docs (try every endpoint in the browser) are at http://localhost:8000/docs, and http://localhost:8000/health should answer `{"status": "ok"}`.
+The app is served at http://localhost:8000: the home page shows the area map, leaderboard and rules, and http://localhost:8000/rules has the rules on their own. Interactive API docs (try every endpoint in the browser) are at http://localhost:8000/docs, and http://localhost:8000/health should answer `{"status": "ok"}`.
 
 ### With Docker (no Python needed)
 Install [Docker](https://docs.docker.com/get-docker/), then from the repo root:
