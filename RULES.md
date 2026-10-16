@@ -33,10 +33,9 @@
 - PRs that didn't win **stay open and keep their 👍**, so they compete again tomorrow.
 
 **What counts as a valid 👍:**
-- it's not from the PR author,
 - it's not from a bot,
-- the account is older than `minAccountAgeDays`,
 - each account counts once per PR.
+- For now, the PR author's own 👍 and the maintainer's 👍 count too, and there is no account-age check.
 
 ## Leaderboard
 - **Score = number of areas you own right now.**
@@ -45,7 +44,7 @@
 
 ## Fair play
 - You can have at most `maxOpenPrsPerPlayer` open PRs at a time.
-- The maintainer (Simecekk) can play like anyone else but doesn't vote. He can label cheating or broken PRs `vv:blocked`. Those PRs can't win, and he can take an area away from a cheater.
+- The maintainer (Simecekk) can play and vote like anyone else. He can label cheating or broken PRs `vv:blocked`. Those PRs can't win, and he can take an area away from a cheater.
 - If a winning PR has to be reverted, the area goes back to its previous owner. A brand-new area is removed.
 - Be kind.
 
@@ -57,7 +56,6 @@
 | `winnersPerDay` | `1` | PRs merged per day |
 | `minLikesNewArea` | `1` | Min valid 👍 to create a new area |
 | `minLikesTakeover` | `1` | Min valid 👍 to take over an existing area |
-| `minAccountAgeDays` | `30` | Voter account must be older than this |
 | `maxOpenPrsPerPlayer` | `2` | Open game PRs per player |
 | `revertWindowDays` | `7` | A revert within this window undoes the win |
 

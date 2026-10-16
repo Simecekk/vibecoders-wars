@@ -1,4 +1,17 @@
+import copy
+from pathlib import Path
+
+import pytest
+
+from scripts.common import load_json
 from scripts.validate_state import main, validate
+
+
+@pytest.fixture
+def fresh():
+    # Frozen initial state: data/territories.json changes after every evaluation run.
+    # Defined here (not in conftest.py) because CI replaces conftest.py with main's copy.
+    return copy.deepcopy(load_json(Path(__file__).parent / "fixtures" / "initial_state.json"))
 
 
 def test_data_file_is_valid(fresh):

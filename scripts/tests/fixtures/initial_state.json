@@ -1,0 +1,228 @@
+{
+  "schemaVersion": "2.0",
+  "repo": "Simecekk/vibecoders-wars",
+  "updatedAt": "2026-10-16T00:00:00Z",
+  "currentWave": 1,
+  "players": [],
+  "waves": [
+    {
+      "number": 1,
+      "status": "open",
+      "territoryIds": [
+        "crud-endpoints",
+        "validation",
+        "error-handling",
+        "database-models",
+        "middleware-logging"
+      ],
+      "openedAt": null,
+      "completedAt": null
+    },
+    {
+      "number": 2,
+      "status": "locked",
+      "territoryIds": [
+        "pagination-filtering",
+        "testing-fixtures",
+        "caching",
+        "background-tasks",
+        "rate-limiting",
+        "auth"
+      ],
+      "openedAt": null,
+      "completedAt": null
+    }
+  ],
+  "territories": [
+    {
+      "id": "crud-endpoints",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "codePath": "app/areas/crud-endpoints/",
+      "testsPath": "tests/areas/crud-endpoints/",
+      "map": {
+        "q": 0,
+        "r": 0
+      },
+      "name": "CRUD endpoints",
+      "status": "free",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "validation",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "codePath": "app/areas/validation/",
+      "testsPath": "tests/areas/validation/",
+      "map": {
+        "q": 1,
+        "r": -1
+      },
+      "name": "Input validation (Pydantic)",
+      "status": "free",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "error-handling",
+      "wave": 1,
+      "tier": "S",
+      "basePoints": 10,
+      "codePath": "app/areas/error-handling/",
+      "testsPath": "tests/areas/error-handling/",
+      "map": {
+        "q": 1,
+        "r": 0
+      },
+      "name": "Error handling",
+      "status": "free",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "database-models",
+      "wave": 1,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/database-models/",
+      "testsPath": "tests/areas/database-models/",
+      "map": {
+        "q": -1,
+        "r": 1
+      },
+      "name": "Database & models",
+      "status": "free",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "middleware-logging",
+      "wave": 1,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/middleware-logging/",
+      "testsPath": "tests/areas/middleware-logging/",
+      "map": {
+        "q": -1,
+        "r": 0
+      },
+      "name": "Middleware & logging",
+      "status": "free",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "pagination-filtering",
+      "wave": 2,
+      "tier": "S",
+      "basePoints": 10,
+      "codePath": "app/areas/pagination-filtering/",
+      "testsPath": "tests/areas/pagination-filtering/",
+      "map": {
+        "q": 0,
+        "r": -1
+      },
+      "name": "Pagination & filtering",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "testing-fixtures",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/testing-fixtures/",
+      "testsPath": "tests/areas/testing-fixtures/",
+      "map": {
+        "q": 2,
+        "r": -1
+      },
+      "name": "Testing fixtures",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "caching",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/caching/",
+      "testsPath": "tests/areas/caching/",
+      "map": {
+        "q": 0,
+        "r": 1
+      },
+      "name": "Caching",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "background-tasks",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/background-tasks/",
+      "testsPath": "tests/areas/background-tasks/",
+      "map": {
+        "q": 1,
+        "r": 1
+      },
+      "name": "Background tasks",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "rate-limiting",
+      "wave": 2,
+      "tier": "M",
+      "basePoints": 25,
+      "codePath": "app/areas/rate-limiting/",
+      "testsPath": "tests/areas/rate-limiting/",
+      "map": {
+        "q": -2,
+        "r": 1
+      },
+      "name": "Rate limiting",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    },
+    {
+      "id": "auth",
+      "wave": 2,
+      "tier": "L",
+      "basePoints": 50,
+      "codePath": "app/areas/auth/",
+      "testsPath": "tests/areas/auth/",
+      "map": {
+        "q": -1,
+        "r": -1
+      },
+      "name": "Authentication",
+      "status": "locked",
+      "owner": null,
+      "winningPr": null,
+      "claimedAt": null
+    }
+  ],
+  "pullRequests": [],
+  "evaluations": [],
+  "pointsLedger": []
+}
