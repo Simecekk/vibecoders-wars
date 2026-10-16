@@ -60,9 +60,8 @@ def test_co_authored_by(fresh):
     assert any("Co-authored-by" in e for e in errors)
 
 
-def test_maintainer_cannot_compete(fresh):
-    _, errors = check(pr(author="Simecekk", commits=[Commit("a" * 40, "Simecekk", "x")]), fresh)
-    assert any("maintainer" in e for e in errors)
+def test_maintainer_can_compete(fresh):
+    assert check(pr(author="Simecekk", commits=[Commit("a" * 40, "Simecekk", "x")]), fresh) == ("validation", [])
 
 
 def test_fix_into_claimed_area_passes(fresh):
