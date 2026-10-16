@@ -68,3 +68,13 @@ def test_leaderboard_ranks_by_areas_owned():
     }
     # zed reached 1 area before alice did, so zed ranks higher on the tie.
     assert leaderboard(state) == [("bob", 2), ("zed", 1), ("alice", 1)]
+
+
+def test_docker_compose_mounts_files_the_pages_read():
+    """`docker compose up` mounts app/ live, so files app/pages.py reads must be mounted too (not baked into the image)."""
+    from app.pages import ROOT, RULES_FILE, STATE_FILE
+
+    compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
+    for path in (RULES_FILE, STATE_FILE.parent):
+        rel = path.relative_to(ROOT).as_posix()
+        assert f"./{rel}:/app/{rel}" in compose, f"mount ./{rel} in docker-compose.yml"
