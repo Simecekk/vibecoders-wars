@@ -27,6 +27,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python -m scripts.check_pr
       - name: Check imports between areas
+        if: steps.pr.outputs.area != ''
         run: python trusted/scripts/check_imports.py "${{ steps.pr.outputs.area }}" --root pr
       - name: Lint (warning only)
         continue-on-error: true

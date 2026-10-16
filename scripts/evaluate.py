@@ -299,6 +299,20 @@ class _Counting:
         return attr
 
 
+class DryRun:
+    """Reads from GitHub, but only prints the writes (merge, labels, comments, close, reviewers)."""
+
+    WRITES = ("merge", "add_labels", "comment", "close", "request_reviewer")
+
+    def __init__(self, gh: GitHub) -> None:
+        self._gh = gh
+
+    def __getattr__(self, name: str) -> Any:
+        if name in self.WRITES:
+            return lambda *a, **kw: print(f"DRY-RUN: would {name}{a}")
+        return getattr(self._gh, name)
+
+
 def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
     """Return (new state, changed). When nothing changed (no merge, points, labels or badges),
     the original state is returned untouched, so the workflow writes and commits nothing."""
@@ -497,6 +511,7 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - glue
     ap.add_argument("--check-hour", action="store_true")
     ap.add_argument("--penalty", nargs=2, metavar=("LOGIN", "AREA"))
     ap.add_argument("--note", default="cheating")
+    ap.add_argument("--dry-run", action="store_true", help="read-only: print GitHub writes, do not write the state")
     args = ap.parse_args(argv)
     now = datetime.now(UTC)
     if args.check_hour:
@@ -505,8 +520,13 @@ def main(argv: list[str] | None = None) -> int:  # pragma: no cover - glue
     if args.penalty:
         state = penalty(state, args.penalty[0], args.penalty[1], args.note, now)
     else:
-        gh = RestGitHub(os.environ.get("GITHUB_REPOSITORY", REPO), os.environ["GH_TOKEN"])
+        gh: GitHub = RestGitHub(os.environ.get("GITHUB_REPOSITORY", REPO), os.environ["GH_TOKEN"])
+        if args.dry_run:
+            gh = DryRun(gh)  # type: ignore[assignment]
         state, changed = evaluate(state, gh, now)
+        if args.dry_run:
+            print(f"DRY-RUN: changed={changed}, state not written; errors={validate(state)}")
+            return 0
         if not changed:
             print("OK: nothing changed, state not written")
             return 0
