@@ -13,9 +13,10 @@ import math
 from html import escape
 from pathlib import Path
 
-import markdown
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
+
+from app import markdown_lite
 
 ROOT = Path(__file__).resolve().parent.parent
 STATE_FILE = ROOT / "data" / "territories.json"
@@ -37,7 +38,7 @@ def load_state(path: Path = STATE_FILE) -> dict:
 def load_rules(path: Path = RULES_FILE) -> str:
     """The player-facing part of RULES.md (everything before the bot/CI appendix), as HTML."""
     player_rules = path.read_text(encoding="utf-8").split("\n---\n", 1)[0]
-    return markdown.markdown(player_rules, extensions=["tables"], tab_length=2)  # RULES.md nests lists by 2 spaces
+    return markdown_lite.render(player_rules)
 
 
 def _center(q: int, r: int) -> tuple[float, float]:
