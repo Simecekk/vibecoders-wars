@@ -18,11 +18,30 @@ scripts/evaluate.py      daily evaluation at 20:00 Prague (cron)
 scripts/validate_state.py validates data/territories.json
 ```
 
-## Development
+## Running the app
+
+The app is served at http://localhost:8000. Interactive API docs (try every endpoint in the browser) are at http://localhost:8000/docs, and http://localhost:8000/health should answer `{"status": "ok"}`.
+
+### With Docker (no Python needed)
+Install [Docker](https://docs.docker.com/get-docker/), then from the repo root:
 ```bash
-python -m venv .venv && . .venv/bin/activate
+docker compose up --build        # start the app; edits in app/ reload automatically
+docker compose run --rm app pytest   # run the tests inside the container
+docker compose down              # stop everything
+```
+Without Compose:
+```bash
+docker build -t vibecoders-wars .
+docker run --rm -p 8000:8000 vibecoders-wars
+```
+
+### Locally (Python 3.11+)
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest
+uvicorn app.main:app --reload    # start the app
+pytest                           # run the tests
 ```
 
 ## Labels

@@ -27,7 +27,9 @@ python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pytest                           # everything should be green
+uvicorn app.main:app --reload    # optional: open http://localhost:8000/docs to try your endpoints
 ```
+Prefer Docker? `docker compose up --build` starts the app and `docker compose run --rm app pytest` runs the tests (see the [README](README.md#running-the-app)).
 
 ## 6. Write code and tests
 - Code goes **only** into `app/areas/<area-id>/`. Start with `router.py` containing `router = APIRouter()`; your endpoints are served under `/<area-id>`. See `app/areas/_example/`.
