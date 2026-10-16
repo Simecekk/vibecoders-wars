@@ -1,8 +1,20 @@
 import copy
 from datetime import UTC, datetime
+from pathlib import Path
 
+import pytest
+
+from scripts.common import load_json
 from scripts.evaluate import Pr, assign_validity, evaluate, is_evaluation_hour, penalty
 from scripts.validate_state import validate
+
+
+@pytest.fixture
+def fresh():
+    # Frozen initial state: data/territories.json changes after every evaluation run.
+    # Defined here (not in conftest.py) because CI replaces conftest.py with main's copy.
+    return copy.deepcopy(load_json(Path(__file__).parent / "fixtures" / "initial_state.json"))
+
 
 NOW = datetime(2026, 10, 16, 18, 0, 30, tzinfo=UTC)  # 20:00:30 Prague (CEST)
 YOUNG = {"id": 9, "created_at": "2026-10-01T00:00:00Z", "avatar_url": "https://avatars.githubusercontent.com/x"}

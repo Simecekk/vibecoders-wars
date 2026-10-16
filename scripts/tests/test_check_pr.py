@@ -1,4 +1,17 @@
+import copy
+from pathlib import Path
+
+import pytest
+
 from scripts.check_pr import Commit, PullRequest, check
+from scripts.common import load_json
+
+
+@pytest.fixture
+def fresh():
+    # Frozen initial state: data/territories.json changes after every evaluation run.
+    # Defined here (not in conftest.py) because CI replaces conftest.py with main's copy.
+    return copy.deepcopy(load_json(Path(__file__).parent / "fixtures" / "initial_state.json"))
 
 
 def pr(title="[validation] Validate signup", author="alice", files=None, commits=None, labels=()):

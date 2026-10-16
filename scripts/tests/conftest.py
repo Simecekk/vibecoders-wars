@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from scripts.common import load_json
+from scripts.common import STATE_PATH, load_json
 
 FIXTURES = Path(__file__).parent / "fixtures"
 OLD = "2020-01-01T00:00:00Z"  # account created long ago
@@ -20,8 +20,7 @@ def example() -> dict[str, Any]:
 
 @pytest.fixture
 def fresh() -> dict[str, Any]:
-    # A frozen copy of the initial state: data/territories.json changes after every evaluation.
-    return copy.deepcopy(load_json(FIXTURES / "initial_state.json"))
+    return copy.deepcopy(load_json(STATE_PATH))
 
 
 @dataclass
