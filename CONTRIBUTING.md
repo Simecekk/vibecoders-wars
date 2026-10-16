@@ -28,6 +28,7 @@ source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pytest
 ```
+Before you push, also run `ruff format .`, `ruff check .` and `pytest --cov`: CI fails a PR that is not formatted, has lint errors, has a failing test or drops coverage below 80%.
 
 ## 6. Write code and tests
 - Code goes **only** in `app/areas/<area-id>/`, starting with a `router.py` that defines `router = APIRouter()`. Your endpoints live under `/<area-id>`.

@@ -10,6 +10,15 @@ addopts = "-q --import-mode=importlib"
 testpaths = ["tests", "scripts/tests"]
 pythonpath = ["."]
 
+[tool.coverage.run]
+source = ["app", "scripts"]
+omit = ["scripts/tests/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
+
 [tool.ruff]
 line-length = 132
 target-version = "py311"
