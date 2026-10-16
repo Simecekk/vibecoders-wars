@@ -83,10 +83,17 @@ class Pr:
 
     @classmethod
     def from_api(cls, raw: dict[str, Any]) -> Pr:
-        return cls(number=raw["number"], title=raw["title"], author=raw["user"]["login"],
-                   author_type=raw["user"].get("type", "User"), created_at=raw["created_at"],
-                   head_sha=raw["head"]["sha"], url=raw["html_url"], labels=[lb["name"] for lb in raw["labels"]],
-                   area=area_from_title(raw["title"]))
+        return cls(
+            number=raw["number"],
+            title=raw["title"],
+            author=raw["user"]["login"],
+            author_type=raw["user"].get("type", "User"),
+            created_at=raw["created_at"],
+            head_sha=raw["head"]["sha"],
+            url=raw["html_url"],
+            labels=[lb["name"] for lb in raw["labels"]],
+            area=area_from_title(raw["title"]),
+        )
 
 
 def is_evaluation_hour(now: datetime) -> bool:
@@ -95,13 +102,21 @@ def is_evaluation_hour(now: datetime) -> bool:
 
 # --------------------------------------------------------------------------- state helpers
 
+
 def _player(state: State, gh: GitHub, login: str, now: str) -> dict[str, Any]:
     for p in state["players"]:
         if p["login"] == login:
             return p
     u = gh.user(login)
-    p = {"login": login, "githubId": u["id"], "avatarUrl": u["avatar_url"], "status": "active",
-         "joinedAt": now, "score": 0, "badges": []}
+    p = {
+        "login": login,
+        "githubId": u["id"],
+        "avatarUrl": u["avatar_url"],
+        "status": "active",
+        "joinedAt": now,
+        "score": 0,
+        "badges": [],
+    }
     state["players"].append(p)
     return p
 
@@ -116,8 +131,15 @@ def _ledger(state: State, entry: dict[str, Any]) -> bool:
 
 def _participation(state: State, gh: GitHub, login: str, area: str, pr: int, now: str, note: str | None = None) -> None:
     _player(state, gh, login, now)
-    entry = {"id": f"participation:{login}:{area}", "player": login, "points": 1, "reason": "participation",
-             "territoryId": area, "pr": pr, "at": now}
+    entry = {
+        "id": f"participation:{login}:{area}",
+        "player": login,
+        "points": 1,
+        "reason": "participation",
+        "territoryId": area,
+        "pr": pr,
+        "at": now,
+    }
     if note:
         entry["note"] = note
     _ledger(state, entry)
@@ -134,9 +156,20 @@ def _record_pr(game: State, pr: Pr, **extra: Any) -> dict[str, Any]:
     if rec is None:
         rec = {"number": pr.number}
         game["pullRequests"].append(rec)
-    rec.update({"url": pr.url, "title": pr.title, "author": pr.author, "territoryId": pr.area,
-                "state": "open", "createdAt": pr.created_at, "headSha": pr.head_sha, "ciStatus": pr.ci,
-                "validity": pr.validity, "labels": sorted(set(pr.labels))})
+    rec.update(
+        {
+            "url": pr.url,
+            "title": pr.title,
+            "author": pr.author,
+            "territoryId": pr.area,
+            "state": "open",
+            "createdAt": pr.created_at,
+            "headSha": pr.head_sha,
+            "ciStatus": pr.ci,
+            "validity": pr.validity,
+            "labels": sorted(set(pr.labels)),
+        }
+    )
     if pr.reasons:
         rec["invalidReasons"] = pr.reasons
     rec.update(extra)
@@ -156,6 +189,7 @@ def _label(gh: GitHub, pr: Pr, label: str) -> None:
 
 # --------------------------------------------------------------------------- votes
 
+
 def _account_old_enough(gh: GitHub, login: str, at: datetime, cache: dict[str, bool]) -> bool:
     if login not in cache:
         cache[login] = parse_ts(gh.user(login)["created_at"]) < at - MIN_ACCOUNT_AGE
@@ -168,8 +202,7 @@ def collect_votes(gh: GitHub, prs: list[Pr], now: datetime, age_cache: dict[str,
     for pr in prs:
         for r in gh.reactions(pr.number):
             if r.get("content", "+1") == "+1" and parse_ts(r["created_at"]) <= now:
-                raw.append((parse_ts(r["created_at"]), pr.number, r["user"]["login"], r["user"].get("type", "User"),
-                            "thumbs_up"))
+                raw.append((parse_ts(r["created_at"]), pr.number, r["user"]["login"], r["user"].get("type", "User"), "thumbs_up"))
         latest: dict[str, dict[str, Any]] = {}
         for rv in sorted(gh.reviews(pr.number), key=lambda x: x["submitted_at"]):
             if parse_ts(rv["submitted_at"]) <= now and rv["state"] in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
@@ -194,8 +227,7 @@ def collect_votes(gh: GitHub, prs: list[Pr], now: datetime, age_cache: dict[str,
             reason = "already_voted_in_area"
         else:
             reason = "ok"
-        votes[number].append({"voter": voter, "type": kind, "at": fmt_ts(at), "counted": reason == "ok",
-                              "reason": reason})
+        votes[number].append({"voter": voter, "type": kind, "at": fmt_ts(at), "counted": reason == "ok", "reason": reason})
     return votes
 
 
@@ -207,17 +239,24 @@ def score(votes: list[dict[str, Any]]) -> tuple[int, int, int]:
 
 # --------------------------------------------------------------------------- comments (bot texts)
 
-LOST_TEXT = ("Thanks for playing! 🙌 Another PR won area `{area}` tonight, so this one is closed. "
-             "You still get **+1 participation point** for a valid PR with green CI. Try another area!")
-LOST_OTHER_TEXT = ("Congrats, you won area `{won}`! 🎉 You can own only one area per wave, so this PR for "
-                   "`{area}` is closed. Your +1 participation point stays.")
+LOST_TEXT = (
+    "Thanks for playing! 🙌 Another PR won area `{area}` tonight, so this one is closed. "
+    "You still get **+1 participation point** for a valid PR with green CI. Try another area!"
+)
+LOST_OTHER_TEXT = (
+    "Congrats, you won area `{won}`! 🎉 You can own only one area per wave, so this PR for "
+    "`{area}` is closed. Your +1 participation point stays."
+)
 INVALID_TEXT = "This PR does not follow the game rules, so it is not counted: {reasons}. See CONTRIBUTING.md."
-MERGE_FAILED_TEXT = ("This PR won area `{area}`, but merging failed (probably a conflict). "
-                     "Please update your branch; the area stays in review until the next evaluation.")
+MERGE_FAILED_TEXT = (
+    "This PR won area `{area}`, but merging failed (probably a conflict). "
+    "Please update your branch; the area stays in review until the next evaluation."
+)
 FIX_MERGED_TEXT = "Fix merged, thank you! 🛠️ Area `{area}` keeps its owner. You get +1 participation point."
 
 
 # --------------------------------------------------------------------------- step 1: fixes
+
 
 def process_fixes(state: State, gh: GitHub, prs: list[Pr], now: datetime) -> None:
     tmap = territory_by_id(state)
@@ -251,6 +290,7 @@ def process_fixes(state: State, gh: GitHub, prs: list[Pr], now: datetime) -> Non
 
 
 # --------------------------------------------------------------------------- step 2: validity + voting
+
 
 def assign_validity(state: State, prs: list[Pr]) -> None:
     """Rules that need state/API (CI checks paths and commits)."""
@@ -291,10 +331,12 @@ class _Counting:
     def __getattr__(self, name: str) -> Any:
         attr = getattr(self._gh, name)
         if name in ("merge", "add_labels", "close"):
+
             def counted(*a: Any, **kw: Any) -> Any:
                 result = attr(*a, **kw)
                 self.writes += 1
                 return result
+
             return counted
         return attr
 
@@ -352,9 +394,13 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
             _record_pr(state, p, votes=votes[p.number], score=total, result="pending")
         best = sorted(scored, key=lambda s: (-s[3], s[0].created_at, s[0].number))[0]
         winner = best[0] if best[3] >= 1 else None
-        results.append({"territoryId": area, "winnerPr": winner.number if winner else None,
-                        "candidates": [{"pr": p.number, "thumbsUp": up, "approvals": ap, "score": total}
-                                       for p, up, ap, total in scored]})
+        results.append(
+            {
+                "territoryId": area,
+                "winnerPr": winner.number if winner else None,
+                "candidates": [{"pr": p.number, "thumbsUp": up, "approvals": ap, "score": total} for p, up, ap, total in scored],
+            }
+        )
         if winner is None:
             results[-1]["note"] = "no PR has at least 1 point"
             continue
@@ -367,8 +413,18 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
         t = tmap[area]
         _player(state, gh, winner.author, ts)
         t.update(status="claimed", owner=winner.author, winningPr=winner.number, claimedAt=ts)
-        _ledger(state, {"id": f"claim:{area}", "player": winner.author, "points": t["basePoints"],
-                        "reason": "claim", "territoryId": area, "pr": winner.number, "at": ts})
+        _ledger(
+            state,
+            {
+                "id": f"claim:{area}",
+                "player": winner.author,
+                "points": t["basePoints"],
+                "reason": "claim",
+                "territoryId": area,
+                "pr": winner.number,
+                "at": ts,
+            },
+        )
         _record_pr(state, winner, state="merged", mergedAt=ts, result="won")
         winners[area] = winner
         closed.add(winner.number)
@@ -380,19 +436,24 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
             if p.number in closed:
                 continue
             same_area = p.area == area
-            other_of_winner = (p.author == winner.author and p.area in tmap and tmap[p.area]["wave"] == wave)
+            other_of_winner = p.author == winner.author and p.area in tmap and tmap[p.area]["wave"] == wave
             if not (same_area or other_of_winner):
                 continue
             green_valid = p.validity == "valid" and p.ci == "success"
             if green_valid and p.area:
                 _participation(state, gh, p.author, p.area, p.number, ts)
             _label(gh, p, LABEL_LOST)
-            text = (LOST_TEXT.format(area=area) if same_area
-                    else LOST_OTHER_TEXT.format(won=area, area=p.area))
+            text = LOST_TEXT.format(area=area) if same_area else LOST_OTHER_TEXT.format(won=area, area=p.area)
             gh.comment(p.number, text)
             gh.close(p.number)
-            _record_pr(state, p, state="closed", closedAt=ts, result="lost",
-                       lostReason="outscored" if same_area else "won_other_area_in_wave")
+            _record_pr(
+                state,
+                p,
+                state="closed",
+                closedAt=ts,
+                result="lost",
+                lostReason="outscored" if same_area else "won_other_area_in_wave",
+            )
             closed.add(p.number)
 
     # area status free <-> in_review, waves
@@ -403,8 +464,11 @@ def evaluate(state: State, gh: GitHub, now: datetime) -> tuple[State, bool]:
     _advance_waves(state, ts)
 
     badges = sum(len(p["badges"]) for p in state["players"])
-    changed = (gh.writes > 0 or len(state["pointsLedger"]) != len(original["pointsLedger"])  # type: ignore[attr-defined]
-               or badges != sum(len(p["badges"]) for p in original["players"]))
+    changed = (
+        gh.writes > 0
+        or len(state["pointsLedger"]) != len(original["pointsLedger"])  # type: ignore[attr-defined]
+        or badges != sum(len(p["badges"]) for p in original["players"])
+    )
     if not changed:
         return original, False
     if results:
@@ -434,9 +498,19 @@ def penalty(state: State, login: str, area: str, note: str, now: datetime) -> St
     t = territory_by_id(state)[area]
     if t["owner"] != login:
         raise SystemExit(f"{login} does not own {area}")
-    _ledger(state, {"id": f"penalty_cheating:{login}:{area}:{ts}", "player": login, "points": -t["basePoints"],
-                    "reason": "penalty_cheating", "territoryId": area, "pr": t.get("winningPr"), "note": note,
-                    "at": ts})
+    _ledger(
+        state,
+        {
+            "id": f"penalty_cheating:{login}:{area}:{ts}",
+            "player": login,
+            "points": -t["basePoints"],
+            "reason": "penalty_cheating",
+            "territoryId": area,
+            "pr": t.get("winningPr"),
+            "note": note,
+            "at": ts,
+        },
+    )
     t.update(status="free", owner=None, winningPr=None, claimedAt=None)
     _recompute_scores(state)
     state["updatedAt"] = ts
@@ -444,6 +518,7 @@ def penalty(state: State, login: str, area: str, note: str, now: datetime) -> St
 
 
 # --------------------------------------------------------------------------- real GitHub client
+
 
 class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehearsal (step 6)
     def __init__(self, repo: str, token: str) -> None:
@@ -454,8 +529,12 @@ class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehea
 
         url = path if path.startswith("http") else f"https://api.github.com{path}"
         data = json.dumps(body).encode() if body is not None else None
-        req = urllib.request.Request(url, data=data, method=method, headers={
-            "Authorization": f"Bearer {self.token}", "Accept": "application/vnd.github+json"})
+        req = urllib.request.Request(
+            url,
+            data=data,
+            method=method,
+            headers={"Authorization": f"Bearer {self.token}", "Accept": "application/vnd.github+json"},
+        )
         with urllib.request.urlopen(req) as resp:
             raw = resp.read()
             link = resp.headers.get("Link", "")
@@ -485,8 +564,9 @@ class RestGitHub:  # pragma: no cover - network glue, covered by the dress rehea
         return self._req("GET", f"/users/{login}")
 
     def merge(self, number, title):
-        self._req("PUT", f"/repos/{self.repo}/pulls/{number}/merge", {"merge_method": "squash",
-                                                                       "commit_title": f"{title} (#{number})"})
+        self._req(
+            "PUT", f"/repos/{self.repo}/pulls/{number}/merge", {"merge_method": "squash", "commit_title": f"{title} (#{number})"}
+        )
 
     def add_labels(self, number, labels):
         self._req("POST", f"/repos/{self.repo}/issues/{number}/labels", {"labels": labels})

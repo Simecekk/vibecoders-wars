@@ -38,22 +38,34 @@ class FakeGitHub:
     comments: list[tuple[int, str]] = field(default_factory=list)
     reviewers: list[tuple[int, str]] = field(default_factory=list)
 
-    def add_pr(self, number: int, area: str, author: str, created: str = "2026-10-16T09:00:00Z",
-               labels: tuple[str, ...] = (), ci: str = "success", fix: bool = False) -> None:
+    def add_pr(
+        self,
+        number: int,
+        area: str,
+        author: str,
+        created: str = "2026-10-16T09:00:00Z",
+        labels: tuple[str, ...] = (),
+        ci: str = "success",
+        fix: bool = False,
+    ) -> None:
         sha = f"{number:040x}"
         title = f"[fix:{area}] Fix something" if fix else f"[{area}] Something"
-        self.pulls[number] = {"number": number, "title": title, "user": {"login": author, "type": "User"},
-                              "created_at": created, "head": {"sha": sha}, "labels": [{"name": n} for n in labels],
-                              "html_url": f"https://github.com/Simecekk/vibecoders-wars/pull/{number}"}
+        self.pulls[number] = {
+            "number": number,
+            "title": title,
+            "user": {"login": author, "type": "User"},
+            "created_at": created,
+            "head": {"sha": sha},
+            "labels": [{"name": n} for n in labels],
+            "html_url": f"https://github.com/Simecekk/vibecoders-wars/pull/{number}",
+        }
         self.ci[sha] = ci
 
     def thumbs(self, number: int, voter: str, at: str = "2026-10-16T10:00:00Z", vtype: str = "User") -> None:
-        self.reacts.setdefault(number, []).append({"content": "+1", "created_at": at,
-                                                   "user": {"login": voter, "type": vtype}})
+        self.reacts.setdefault(number, []).append({"content": "+1", "created_at": at, "user": {"login": voter, "type": vtype}})
 
     def review(self, number: int, voter: str, state: str = "APPROVED", at: str = "2026-10-16T11:00:00Z") -> None:
-        self.revs.setdefault(number, []).append({"state": state, "submitted_at": at,
-                                                 "user": {"login": voter, "type": "User"}})
+        self.revs.setdefault(number, []).append({"state": state, "submitted_at": at, "user": {"login": voter, "type": "User"}})
 
     # --- GitHub protocol
     def open_pulls(self):
@@ -69,8 +81,10 @@ class FakeGitHub:
         return self.revs.get(number, [])
 
     def user(self, login):
-        return self.users.get(login, {"id": abs(hash(login)) % 10**6, "created_at": OLD,
-                                      "avatar_url": f"https://avatars.githubusercontent.com/{login}"})
+        return self.users.get(
+            login,
+            {"id": abs(hash(login)) % 10**6, "created_at": OLD, "avatar_url": f"https://avatars.githubusercontent.com/{login}"},
+        )
 
     def merge(self, number, title):
         if number in self.fail_merge:

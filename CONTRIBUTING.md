@@ -38,6 +38,7 @@ from app.main import app
 
 client = TestClient(app)
 
+
 def test_rejects_empty_name():
     r = client.post("/validation/items", json={"name": ""})
     assert r.status_code == 422
