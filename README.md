@@ -1,9 +1,10 @@
 # Vibecoders Wars
 
-A beginner-friendly open-source game: together we build one FastAPI backend, one **area** at a time, through pull requests. Win an area with the most 👍 and it's yours on the map at [vibecoders.cz/wars](https://www.vibecoders.cz/wars/).
+A beginner-friendly open-source game: together we build one FastAPI backend, one **area** at a time, through pull requests. AI judges score every PR; a high enough score takes the area right away. Map: [vibecoders.cz/wars](https://www.vibecoders.cz/wars/).
 
 - **How to play:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Rules:** [RULES.md](RULES.md)
+- **LLM judges:** [docs/llm-judge.md](docs/llm-judge.md)
 - **Game state:** [data/territories.json](data/territories.json) (schema: [schema/schema.json](schema/schema.json)), written only by the bot.
 
 ## Layout
@@ -52,6 +53,6 @@ pytest --cov                     # tests; fails if coverage of app/ and scripts/
 ```
 
 ## Labels
-`area:<id>`, `vv:invalid` (breaks the rules), `vv:lost` (lost the vote), `vv:blocked` (maintainer veto), `vv:fix` (fix in a claimed area; added by the bot to PRs titled `[fix:<area-id>] ...`).
+`area:<id>`, `vv:invalid` (breaks the rules), `vv:blocked` (maintainer veto), `vv:ready-to-merge` (waiting for maintainer approve when required), `vv:judge-override` / `vv:judge-rejudge` / `vv:judge-disagree` / `vv:judge-injection` / `vv:judge-error` (LLM judge labels; see [docs/llm-judge.md](docs/llm-judge.md)).
 
 License: [MIT](LICENSE).
